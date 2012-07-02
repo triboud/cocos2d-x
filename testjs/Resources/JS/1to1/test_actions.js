@@ -144,6 +144,7 @@ scenes['test_repeat'] = function () {
 };
 
 scenes['test_sequence'] = function () {
+	cc.log("test_sequence....");
 	var s1 = new cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
 
@@ -154,7 +155,10 @@ scenes['test_sequence'] = function () {
 	var rotate2 = rotate1.reverse();
 	var delay = cc.DelayTime.actionWithDuration(1.5);
 
-	var seq = cc.Sequence.actions(rotate1, moveBy, delay, rotate2);
+	var callAction = cc.CallFunc.create(this, function () {
+		cc.log("call action...");
+	});
+	var seq = cc.Sequence.actions(rotate1, moveBy, delay, rotate2, callAction);
 	s1.runAction(seq);
 
 	var scene = new cc.Scene(); scene.init();
@@ -168,6 +172,7 @@ scenes['test_sequence'] = function () {
 };
 
 scenes['test_wave3d'] = function () {
+	cc.log("test_wave3d....");
 	var node = new cc.Node();
 	var s1 = new cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
@@ -179,7 +184,11 @@ scenes['test_wave3d'] = function () {
 	var rotate2 = rotate1.reverse();
 	var delay = cc.DelayTime.actionWithDuration(1.5);
 	
-	var seq = cc.Sequence.actions(rotate1, moveBy, delay, rotate2);
+	var callAction = cc.CallFunc.create(this, function () {
+		cc.log("call action...");
+	});
+
+	var seq = cc.Sequence.actions(rotate1, moveBy, delay, rotate2, callAction);
 	s1.runAction(seq);
 
 	var scene = new cc.Scene(); scene.init();

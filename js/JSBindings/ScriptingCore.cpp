@@ -203,7 +203,7 @@ ScriptingCore::ScriptingCore()
     S_CCBezierTo::jsCreateClass(this->cx, cocos, "BezierTo");
     S_CCTMXTiledMap::jsCreateClass(this->cx, cocos, "TMXTiledMap");
     S_CCTMXLayer::jsCreateClass(this->cx, cocos, "TMXLayer");
-
+    S_CCCallFunc::jsCreateClass(this->cx, cocos, "CallFunc");
     S_SimpleAudioEngine::jsCreateClass(this->cx, cocos, "SimpleAudioEngine");
 
     // register some global functions

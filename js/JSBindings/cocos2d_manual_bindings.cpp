@@ -1,5 +1,6 @@
 #include "cocos2d_generated.hpp"
 
+// MenuItemSelector
 MenuItemSelector::MenuItemSelector()
 : m_pCallBackFuncObj(NULL)
 , m_pThisJsObj(NULL)
@@ -10,17 +11,42 @@ void MenuItemSelector::menuCallBack(CCObject* pSender)
 {
     JSContext* cx  = ScriptingCore::getInstance().getGlobalContext();
     CCAssert(JS_ValueToFunction(cx, OBJECT_TO_JSVAL(m_pCallBackFuncObj)), "Should be a function");
+    CCObject* pSenderFromJs = NULL; JSGET_PTRSHELL(CCObject, pSenderFromJs, m_pSender);
+    CCAssert(pSenderFromJs == pSender, "");
     jsval rval;
-    jsval val = 0;
+    jsval val = OBJECT_TO_JSVAL(m_pSender);
 
     JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 1, &val, &rval);
 }
 
-void MenuItemSelector::setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj)
+void MenuItemSelector::setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj, JSObject* pSender)
+{
+    m_pCallBackFuncObj = pCallBackFuncObj;
+    m_pThisJsObj = pThisJsObj;
+    m_pSender = pSender;
+}
+
+// CallFuncSelector
+CallFuncSelector::CallFuncSelector()
+: m_pCallBackFuncObj(NULL)
+, m_pThisJsObj(NULL)
+{
+}
+
+void CallFuncSelector::callBack()
+{
+    JSContext* cx  = ScriptingCore::getInstance().getGlobalContext();
+    CCAssert(JS_ValueToFunction(cx, OBJECT_TO_JSVAL(m_pCallBackFuncObj)), "Should be a function");
+    jsval rval;
+    JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 0, NULL, &rval);
+}
+
+void CallFuncSelector::setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj)
 {
     m_pCallBackFuncObj = pCallBackFuncObj;
     m_pThisJsObj = pThisJsObj;
 }
+
 
 JSBool S_CCNode::jsaddChild(JSContext *cx, uint32_t argc, jsval *vp) {
     JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
@@ -114,29 +140,37 @@ JSBool S_CCMenuItemSprite::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             pCallBackObj = arg4;
         }
      
-        CCMenuItemSprite* ret = NULL;
-        MenuItemSelector* pMenuItemSelector = NULL;
-        if (pThisObj && pCallBackObj)
+        S_CCMenuItemSprite* ret = new S_CCMenuItemSprite(NULL);
+        if (ret)
         {
-            pMenuItemSelector = new MenuItemSelector();
-            ret = CCMenuItemSprite::create(narg0, narg1, narg2, pMenuItemSelector, menu_selector(MenuItemSelector::menuCallBack));
-        }
-        else
-        {
-            ret = CCMenuItemSprite::create(narg0, narg1, narg2);
+            if (pThisObj && pCallBackObj)
+            {
+                ret->m_pMenuItemSelector = new MenuItemSelector();
+                if (!ret->initWithNormalSprite(narg0, narg1, narg2, ret->m_pMenuItemSelector, menu_selector(MenuItemSelector::menuCallBack)))
+                {
+                    CC_SAFE_DELETE(ret->m_pMenuItemSelector);
+                    CC_SAFE_DELETE(ret);
+                }
+            }
+            else
+            {
+                if (!ret->initWithNormalSprite(narg0, narg1, narg2, NULL, NULL))
+                {
+                    CC_SAFE_DELETE(ret);
+                }
+            }
         }
 
         if (ret == NULL) {
-            CC_SAFE_DELETE(pMenuItemSelector);
             JS_SET_RVAL(cx, vp, JSVAL_NULL);
             return JS_TRUE;
         }
         do {
-			ret->retain();
             JSObject *tmp = JS_NewObject(cx, S_CCMenuItemSprite::jsClass, S_CCMenuItemSprite::jsObject, NULL);
-            if (pMenuItemSelector)
+            ret->m_jsobj = tmp;
+            if (ret->m_pMenuItemSelector)
             {
-                pMenuItemSelector->setJsCallBack(pThisObj, pCallBackObj);
+                ret->m_pMenuItemSelector->setJsCallBack(pThisObj, pCallBackObj, tmp);
             }
             
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
@@ -151,6 +185,56 @@ JSBool S_CCMenuItemSprite::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
     JS_SET_RVAL(cx, vp, JSVAL_TRUE);
     return JS_TRUE;
 }
+
+JSBool S_CCCallFunc::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
+    if (argc == 2) {
+        JSObject *arg0 = NULL;
+        JSObject *arg1 = NULL;
+
+        CCObject* narg0 = NULL;
+        JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "oo", &arg0, &arg1);
+
+        
+        S_CCCallFunc* ret = new S_CCCallFunc(NULL);
+        if (ret)
+        {
+            ret->m_pCallFuncSelector = new CallFuncSelector();
+            if (ret->initWithTarget(ret->m_pCallFuncSelector))
+            {
+                ret->m_pCallFunc = callfunc_selector(CallFuncSelector::callBack);
+            }
+            else
+            {
+                CC_SAFE_DELETE(ret->m_pCallFuncSelector);
+                CC_SAFE_DELETE(ret);
+            }
+        }
+        
+        if (ret == NULL) {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+        do {
+            JSObject *tmp = JS_NewObject(cx, S_CCMenuItemSprite::jsClass, S_CCMenuItemSprite::jsObject, NULL);
+            ret->m_jsobj = tmp;
+            if (ret->m_pCallFuncSelector)
+            {
+                ret->m_pCallFuncSelector->setJsCallBack(arg0, arg1);
+            }
+
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    return JS_TRUE;
+}
+
 
 JSBool S_CCMenuItemImage::jsinitWithNormalImage(JSContext *cx, uint32_t argc, jsval *vp) {
     JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);

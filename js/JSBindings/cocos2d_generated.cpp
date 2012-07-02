@@ -28732,6 +28732,57 @@ void S__ccGridSize::jsCreateClass(JSContext *cx, JSObject *globalObj, const char
 	jsObject = JS_InitClass(cx,globalObj,NULL,jsClass,S__ccGridSize::jsConstructor,0,properties,funcs,NULL,st_funcs);
 }
 
+JSClass* S_CCCallFunc::jsClass = NULL;
+JSObject* S_CCCallFunc::jsObject = NULL;
+
+JSBool S_CCCallFunc::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject *obj = JS_NewObject(cx, S_CCCallFunc::jsClass, S_CCCallFunc::jsObject, NULL);
+    S_CCCallFunc *cobj = new S_CCCallFunc(obj);
+    pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+    pt->flags = 0; pt->data = cobj;
+    JS_SetPrivate(obj, pt);
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+    return JS_TRUE;
+}
+
+void S_CCCallFunc::jsFinalize(JSContext *cx, JSObject *obj)
+{
+    pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(obj);
+    if (pt) {
+        if (!(pt->flags & kPointerTemporary) && pt->data) ((S_CCCallFunc *)pt->data)->release();
+        JS_free(cx, pt);
+    }
+}
+
+void S_CCCallFunc::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name)
+{
+    jsClass = (JSClass *)calloc(1, sizeof(JSClass));
+    jsClass->name = name;
+    jsClass->addProperty = JS_PropertyStub;
+    jsClass->delProperty = JS_PropertyStub;
+    jsClass->getProperty = JS_PropertyStub;
+    jsClass->setProperty = JS_StrictPropertyStub;
+    jsClass->enumerate = JS_EnumerateStub;
+    jsClass->resolve = JS_ResolveStub;
+    jsClass->convert = JS_ConvertStub;
+    jsClass->finalize = jsFinalize;
+    jsClass->flags = JSCLASS_HAS_PRIVATE;
+    static JSPropertySpec properties[] = {
+        {0, 0, 0, 0, 0}
+    };
+
+    static JSFunctionSpec funcs[] = {
+        JS_FS_END
+    };
+
+    static JSFunctionSpec st_funcs[] = {
+        JS_FN("create", S_CCCallFunc::jscreate, 2, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FS_END
+    };
+
+    jsObject = JS_InitClass(cx,globalObj, NULL,jsClass,S_CCCallFunc::jsConstructor,0,properties,funcs,NULL,st_funcs);
+}
 
 void register_enums_cocos2d_generated(JSObject *global) {
 	JSContext *cx = ScriptingCore::getInstance().getGlobalContext();
