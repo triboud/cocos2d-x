@@ -115,7 +115,7 @@ public:
 	static JSBool jsstop(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithAnimation(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -930,9 +930,7 @@ public:
 	static JSBool jsaddSpriteFrameWithFileName(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsaddSpriteFrameWithTexture(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinit(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsanimation(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsanimationWithSpriteFrames(JSContext *cx, uint32_t argc, jsval *vp);
-
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 };
 
 class S_CCTransitionFadeBL : public cocos2d::CCTransitionFadeBL
@@ -3469,7 +3467,7 @@ public:
 	static JSBool jsstep(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsisDone(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithAction(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 

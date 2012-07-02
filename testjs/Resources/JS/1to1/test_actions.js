@@ -97,8 +97,8 @@ scenes['test_animation'] = function () {
 
 	// create animation
 	var frames = ["tank1.png", "tank2.png", "tank3.png", "tank4.png", "tank5.png"];
-	var animation = new cc.Animation();
-	animation.init();
+	var animation = cc.Animation.create();
+
 	// set the delay
 	animation.delayPerUnit = 0.1;
 	// add the frames
@@ -107,8 +107,7 @@ scenes['test_animation'] = function () {
 		animation.addSpriteFrame(frame);
 	}
 	// action stored in the sprite to avoid GC
-	sprite.anim = new cc.Animate();
-	sprite.anim.initWithAnimation(animation);
+	sprite.anim = cc.Animate.create(animation);
 	sprite.runAction(sprite.anim);
 
 	var scene = new cc.Scene(); scene.init();
@@ -125,11 +124,9 @@ scenes['test_repeat'] = function () {
 	var s1 = new cc.Sprite.create("grossinis_sister1.png");
 	s1.position = cc.Point.create(winSize.width / 2, winSize.height / 2);
 
-	var rotateBy = new cc.RotateBy();
-	rotateBy.initWithDuration(1.0, 90);
+	var rotateBy = cc.RotateBy.create(1.0, 90);
 
-	var repeat = new cc.RepeatForever();
-	repeat.initWithAction(rotateBy);
+	var repeat = cc.RepeatForever.create(rotateBy);
 
 	s1.runAction(repeat);
 	var scene = new cc.Scene(); scene.init();
