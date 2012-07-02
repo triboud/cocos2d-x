@@ -18137,7 +18137,7 @@ void S_CCLabelTTF::jsCreateClass(JSContext *cx, JSObject *globalObj, const char 
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("labelWithString", S_CCLabelTTF::jslabelWithString, 5, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCLabelTTF::jscreate, 5, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 

@@ -370,7 +370,7 @@ JSBool S_CCFileUtils::jsfullPathFromRelativeFile(JSContext *cx, uint32_t argc, j
     return JS_TRUE;
 }
 
-JSBool S_CCLabelTTF::jslabelWithString(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCLabelTTF::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
     if (argc == 5) {
         JSString *arg0;
         JSObject *arg1;
@@ -381,12 +381,13 @@ JSBool S_CCLabelTTF::jslabelWithString(JSContext *cx, uint32_t argc, jsval *vp) 
         char *narg0 = JS_EncodeString(cx, arg0);
         CCSize* narg1; JSGET_PTRSHELL(CCSize, narg1, arg1);
         char *narg3 = JS_EncodeString(cx, arg3);
-        CCLabelTTF *ret = CCLabelTTF::labelWithString(narg0, *narg1, (CCTextAlignment)arg2, narg3, arg4);
+        CCLabelTTF *ret = CCLabelTTF::create(narg0, *narg1, (CCTextAlignment)arg2, narg3, arg4);
         if (ret == NULL) {
             JS_SET_RVAL(cx, vp, JSVAL_NULL);
             return JS_TRUE;
         }
         do {
+            ret->retain();
             JSObject *tmp = JS_NewObject(cx, S_CCLabelTTF::jsClass, S_CCLabelTTF::jsObject, NULL);
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
             pt->flags = kPointerTemporary;

@@ -262,28 +262,30 @@ var createMenu = function (labelText) {
 
 	var r1 = new cc.Sprite(); r1.initWithFile("r1.png");
 	var r2 = new cc.Sprite(); r2.initWithFile("r2.png");
-	item2 = new cc.MenuItemSprite();
-	item2.initWithNormalSprite(r1, r2);
-	item2.action = function () {
-		// cc.executeScript("JS/1to1/test_actions.js");
-		playCurrentScene();
-	};
+	item2 = cc.MenuItemSprite.create(r1, r2, this,
+		function (sender) {
+			// cc.executeScript("JS/1to1/test_actions.js");
+			playCurrentScene();
+		}
+	);
 
 	var f1 = new cc.Sprite(); f1.initWithFile("f1.png");
 	var f2 = new cc.Sprite(); f2.initWithFile("f2.png");
-	item3 = new cc.MenuItemSprite();
-	item3.initWithNormalSprite(f1, f2);
-	item3.action = function () {
-		nextScene();
-	};
+	item3 = cc.MenuItemSprite.create(f1, f2, this,
+		function (sender)
+		{
+			nextScene();
+		}
+	);
 
 	var c1 = new cc.Sprite(); c1.initWithFile("r1.png");
 	var c2 = new cc.Sprite(); c2.initWithFile("r2.png");
-	item4 = new cc.MenuItemSprite();
-	item4.initWithNormalSprite(c1, c2);
-	item4.action = function () {
-		cc.executeScript("JS/1to1/test_actions.js");
-	};
+	item4 = cc.MenuItemSprite.create(c1, c2, this,
+		function (sender)
+		{
+			cc.executeScript("JS/1to1/test_actions.js");
+		}
+	);
 
 	item1.position = cc.Point.create(winSize.width / 2 - 100, 30);
 	item2.position = cc.Point.create(winSize.width / 2      , 30);
@@ -297,9 +299,7 @@ var createMenu = function (labelText) {
 	hudMenu.position = pointZero;
 
 	if (labelText) {
-		var label = new cc.LabelTTF();
-		// initWithString: text, size, alignment, font, fontSize
-		label.initWithString(labelText, sizeZero, 0, "Arial", 18.0);
+		var label = cc.LabelTTF.create(labelText, sizeZero, 0, "Arial", 18.0);
         var menuLabel = new cc.MenuItemLabel();
         menuLabel.initWithLabel(label);
 		menuLabel.position = cc.Point.create(winSize.width / 2, winSize.height - 30);

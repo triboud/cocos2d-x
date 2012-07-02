@@ -2751,7 +2751,7 @@ public:
 	static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
 	static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
-	static JSBool jslabelWithString(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinitWithString(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
