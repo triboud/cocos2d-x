@@ -273,7 +273,7 @@ void S_CCAnimate::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("actionWithAnimation", S_CCAnimate::jsactionWithAnimation, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCAnimate::jscreate, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -364,20 +364,21 @@ JSBool S_CCAnimate::jsreverse(JSContext *cx, uint32_t argc, jsval *vp) {
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
-JSBool S_CCAnimate::jsactionWithAnimation(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCAnimate::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 1) {
 		JSObject *arg0;
 		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
 		CCAnimation* narg0; JSGET_PTRSHELL(CCAnimation, narg0, arg0);
-		CCAnimate* ret = CCAnimate::actionWithAnimation(narg0);
+		CCAnimate* ret = CCAnimate::create(narg0);
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCAnimate::jsClass, S_CCAnimate::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;//kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -5719,9 +5720,8 @@ void S_CCAnimation::jsCreateClass(JSContext *cx, JSObject *globalObj, const char
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("animation", S_CCAnimation::jsanimation, 0, JSPROP_PERMANENT | JSPROP_SHARED),
-			JS_FN("animationWithSpriteFrames", S_CCAnimation::jsanimationWithSpriteFrames, 1, JSPROP_PERMANENT | JSPROP_SHARED),
-			JS_FS_END
+			JS_FN("create", S_CCAnimation::jscreate, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+    		JS_FS_END
 		};
 
 	jsObject = JS_InitClass(cx,globalObj,NULL,jsClass,S_CCAnimation::jsConstructor,0,properties,funcs,NULL,st_funcs);
@@ -5806,41 +5806,31 @@ JSBool S_CCAnimation::jsinit(JSContext *cx, uint32_t argc, jsval *vp) {
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
-JSBool S_CCAnimation::jsanimation(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 0) {
-		CCAnimation* ret = CCAnimation::animation();
-		if (ret == NULL) {
-			JS_SET_RVAL(cx, vp, JSVAL_NULL);
-			return JS_TRUE;
-		}
-		do {
-			JSObject *tmp = JS_NewObject(cx, S_CCAnimation::jsClass, S_CCAnimation::jsObject, NULL);
-			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
-			pt->data = (void *)ret;
-			JS_SetPrivate(tmp, pt);
-			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
-		} while (0);
+JSBool S_CCAnimation::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
+	if (argc == 0 || argc == 1) {
+        CCAnimation* ret = NULL;
+        if (argc == 0)
+        {
+            ret = CCAnimation::create();
+        }
+        else
+        {
+            CCAssert(0, "not implement, we should use js array.");
+            JSObject *arg0;
+            JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+            CCArray* narg0; JSGET_PTRSHELL(CCArray, narg0, arg0);
+            ret = CCAnimation::create(narg0);
+        }
 		
-		return JS_TRUE;
-	}
-	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
-	return JS_TRUE;
-}
-JSBool S_CCAnimation::jsanimationWithSpriteFrames(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 1) {
-		JSObject *arg0;
-		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
-		CCArray* narg0; JSGET_PTRSHELL(CCArray, narg0, arg0);
-		CCAnimation* ret = CCAnimation::animationWithSpriteFrames(narg0);
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCAnimation::jsClass, S_CCAnimation::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;//kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -22598,7 +22588,7 @@ void S_CCRepeatForever::jsCreateClass(JSContext *cx, JSObject *globalObj, const 
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("actionWithAction", S_CCRepeatForever::jsactionWithAction, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCRepeatForever::jscreate, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -22689,20 +22679,21 @@ JSBool S_CCRepeatForever::jsreverse(JSContext *cx, uint32_t argc, jsval *vp) {
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
-JSBool S_CCRepeatForever::jsactionWithAction(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCRepeatForever::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 1) {
 		JSObject *arg0;
 		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
 		CCActionInterval* narg0; JSGET_PTRSHELL(CCActionInterval, narg0, arg0);
-		CCRepeatForever* ret = CCRepeatForever::actionWithAction(narg0);
+		CCRepeatForever* ret = CCRepeatForever::create(narg0);
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCRepeatForever::jsClass, S_CCRepeatForever::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;//kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
