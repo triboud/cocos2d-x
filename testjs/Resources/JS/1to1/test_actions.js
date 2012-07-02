@@ -70,8 +70,7 @@ scenes['test_rotate'] = function () {
 
 	var rotateTo = new cc.RotateTo();
 	rotateTo.initWithDuration(1.0, 180.0);
-	var rotateBy = new cc.RotateBy();
-	rotateBy.initWithDuration(2.0, 90);
+	var rotateBy = cc.RotateBy.create(2.0, 90);
 
 	s1.runAction(rotateTo);
 	s2.runAction(rotateBy);
@@ -144,17 +143,21 @@ scenes['test_repeat'] = function () {
 };
 
 scenes['test_sequence'] = function () {
+	cc.log("test_sequence....");
 	var s1 = new cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
 
-	var rotate1 = new cc.RotateBy();
-	rotate1.initWithDuration(1.0, 90);
+	var rotate1 = cc.RotateBy.create(1.0, 90);
 	var moveBy = new cc.MoveBy();
 	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
+	var fadeOut = cc.FadeOut.create(2);
 	var rotate2 = rotate1.reverse();
-	var delay = cc.DelayTime.actionWithDuration(1.5);
+	var delay = cc.DelayTime.create(1.5);
 
-	var seq = cc.Sequence.actions(rotate1, moveBy, delay, rotate2);
+	var callAction = cc.CallFunc.create(this, function () {
+		cc.log("call action...");
+	});
+	var seq = cc.Sequence.create(rotate1, moveBy, delay, rotate2, fadeOut, callAction);
 	s1.runAction(seq);
 
 	var scene = new cc.Scene(); scene.init();
@@ -168,18 +171,22 @@ scenes['test_sequence'] = function () {
 };
 
 scenes['test_wave3d'] = function () {
+	cc.log("test_wave3d....");
 	var node = new cc.Node();
 	var s1 = new cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
 
-	var rotate1 = new cc.RotateBy();
-	rotate1.initWithDuration(1.0, 90);
+	var rotate1 = cc.RotateBy.create(1.0, 90);
 	var moveBy = new cc.MoveBy();
 	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
 	var rotate2 = rotate1.reverse();
-	var delay = cc.DelayTime.actionWithDuration(1.5);
+	var delay = cc.DelayTime.create(1.5);
 	
-	var seq = cc.Sequence.actions(rotate1, moveBy, delay, rotate2);
+	var callAction = cc.CallFunc.create(this, function () {
+		cc.log("call action...");
+	});
+
+	var seq = cc.Sequence.create(rotate1, moveBy, delay, rotate2, callAction);
 	s1.runAction(seq);
 
 	var scene = new cc.Scene(); scene.init();
@@ -253,28 +260,30 @@ var createMenu = function (labelText) {
 
 	var r1 = new cc.Sprite(); r1.initWithFile("r1.png");
 	var r2 = new cc.Sprite(); r2.initWithFile("r2.png");
-	item2 = new cc.MenuItemSprite();
-	item2.initWithNormalSprite(r1, r2);
-	item2.action = function () {
-		// cc.executeScript("JS/1to1/test_actions.js");
-		playCurrentScene();
-	};
+	item2 = cc.MenuItemSprite.create(r1, r2, this,
+		function (sender) {
+			// cc.executeScript("JS/1to1/test_actions.js");
+			playCurrentScene();
+		}
+	);
 
 	var f1 = new cc.Sprite(); f1.initWithFile("f1.png");
 	var f2 = new cc.Sprite(); f2.initWithFile("f2.png");
-	item3 = new cc.MenuItemSprite();
-	item3.initWithNormalSprite(f1, f2);
-	item3.action = function () {
-		nextScene();
-	};
+	item3 = cc.MenuItemSprite.create(f1, f2, this,
+		function (sender)
+		{
+			nextScene();
+		}
+	);
 
 	var c1 = new cc.Sprite(); c1.initWithFile("r1.png");
 	var c2 = new cc.Sprite(); c2.initWithFile("r2.png");
-	item4 = new cc.MenuItemSprite();
-	item4.initWithNormalSprite(c1, c2);
-	item4.action = function () {
-		cc.executeScript("JS/1to1/test_actions.js");
-	};
+	item4 = cc.MenuItemSprite.create(c1, c2, this,
+		function (sender)
+		{
+			cc.executeScript("JS/1to1/test_actions.js");
+		}
+	);
 
 	item1.position = cc.Point.create(winSize.width / 2 - 100, 30);
 	item2.position = cc.Point.create(winSize.width / 2      , 30);
@@ -288,9 +297,7 @@ var createMenu = function (labelText) {
 	hudMenu.position = pointZero;
 
 	if (labelText) {
-		var label = new cc.LabelTTF();
-		// initWithString: text, size, alignment, font, fontSize
-		label.initWithString(labelText, sizeZero, 0, "Arial", 18.0);
+		var label = cc.LabelTTF.create(labelText, sizeZero, 0, "Arial", 18.0);
         var menuLabel = new cc.MenuItemLabel();
         menuLabel.initWithLabel(label);
 		menuLabel.position = cc.Point.create(winSize.width / 2, winSize.height - 30);

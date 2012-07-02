@@ -51,12 +51,23 @@ class MenuItemSelector : public CCObject
 public:
     MenuItemSelector();
     void menuCallBack(CCObject* pSender);
+    void setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj, JSObject* pSender);
+private:
+    JSObject* m_pCallBackFuncObj;
+    JSObject* m_pThisJsObj;
+    JSObject* m_pSender;
+};
+
+class CallFuncSelector : public CCObject
+{
+public:
+    CallFuncSelector();
+    void callBack();
     void setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj);
 private:
     JSObject* m_pCallBackFuncObj;
     JSObject* m_pThisJsObj;
 };
-
 
 class S_CCTransitionMoveInL : public cocos2d::CCTransitionMoveInL
 {
@@ -513,13 +524,13 @@ public:
 class S_CCMenuItemSprite : public cocos2d::CCMenuItemSprite
 {
 	JSObject *m_jsobj;
-    MenuItemSelector* m_pMenuItemTarget;
+    MenuItemSelector* m_pMenuItemSelector;
 public:
 	static JSClass *jsClass;
 	static JSObject *jsObject;
 
-	S_CCMenuItemSprite(JSObject *obj) : CCMenuItemSprite(), m_jsobj(obj), m_pMenuItemTarget(NULL) {};
-    virtual ~S_CCMenuItemSprite() { CC_SAFE_DELETE(m_pMenuItemTarget); }
+	S_CCMenuItemSprite(JSObject *obj) : CCMenuItemSprite(), m_jsobj(obj), m_pMenuItemSelector(NULL) {};
+    virtual ~S_CCMenuItemSprite() { CC_SAFE_DELETE(m_pMenuItemSelector); }
 	enum {
 		kNormalImage = 1,
 		kSelectedImage,
@@ -614,7 +625,7 @@ public:
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -642,9 +653,7 @@ public:
 	static JSBool jsstop(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactions(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionsWithArray(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionOneTwo(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -1254,7 +1263,7 @@ public:
 	static JSBool jsstartWithTarget(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -2674,7 +2683,7 @@ public:
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithAction(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -2771,7 +2780,7 @@ public:
 	static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
 	static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
-	static JSBool jslabelWithString(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinitWithString(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
@@ -3205,7 +3214,7 @@ public:
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithAction(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -3570,7 +3579,7 @@ public:
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -3727,7 +3736,7 @@ public:
 	static JSBool jsinitWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsstartWithTarget(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -3802,7 +3811,7 @@ public:
 	static JSBool jsinitWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -4169,7 +4178,7 @@ public:
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
 	static JSBool jsstartWithTarget(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -4265,7 +4274,7 @@ public:
 	static JSBool jsinitWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsstartWithTarget(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -4351,6 +4360,23 @@ public:
 	static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
 	static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
+
+};
+
+class S_CCCallFunc : public cocos2d::CCCallFunc
+{
+    CallFuncSelector* m_pCallFuncSelector;
+    JSObject *m_jsobj;
+public:
+    static JSClass *jsClass;
+    static JSObject *jsObject;
+
+    S_CCCallFunc(JSObject *obj) : CCCallFunc(), m_jsobj(obj), m_pCallFuncSelector(NULL) {};
+    virtual ~S_CCCallFunc() { CC_SAFE_DELETE(m_pCallFuncSelector); }
+    static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
+    static void jsFinalize(JSContext *cx, JSObject *obj);
+    static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
+    static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
