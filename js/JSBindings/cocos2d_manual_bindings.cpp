@@ -274,6 +274,7 @@ JSBool S_CCSequence::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
                     return JS_TRUE;
                 }
                 do {
+                    ret->retain();
                     JSObject *tmp = JS_NewObject(cx, S_CCFiniteTimeAction::jsClass, S_CCFiniteTimeAction::jsObject, NULL);
                     pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
                     pt->flags = kPointerTemporary;
@@ -292,13 +293,14 @@ JSBool S_CCSequence::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
         JSGET_PTRSHELL(S_CCSequence, prev, JSVAL_TO_OBJECT(argv[0]));
         for (int i=1; i < argc; i++) {
             CCFiniteTimeAction *next; JSGET_PTRSHELL(CCFiniteTimeAction, next, JSVAL_TO_OBJECT(argv[i]));
-            prev = (S_CCSequence *)CCSequence::actionOneTwo(prev, next);
+            prev = (S_CCSequence *)CCSequence::create(prev, next);
         }
+        prev->retain();
         // wrap prev in an action
         // temporary because it's just a wrapper for an autoreleased object
         // or worst case, it's an already binded object (if it's just one item in the array)
         pointerShell_t* pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-        pt->flags = kPointerTemporary;
+        pt->flags = 0;//FIXME: why shall we use kPointerTemporary?; by James Chen
         pt->data = prev;
         JSObject* out = JS_NewObject(cx, S_CCSequence::jsClass, S_CCSequence::jsObject, NULL);
         prev->jsObject = out;
