@@ -3727,7 +3727,7 @@ void S_CCDelayTime::jsCreateClass(JSContext *cx, JSObject *globalObj, const char
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("actionWithDuration", S_CCDelayTime::jsactionWithDuration, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCDelayTime::jscreate, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -3773,16 +3773,17 @@ JSBool S_CCDelayTime::jsreverse(JSContext *cx, uint32_t argc, jsval *vp) {
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
-JSBool S_CCDelayTime::jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCDelayTime::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 1) {
 		double arg0;
 		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &arg0);
-		CCDelayTime* ret = CCDelayTime::actionWithDuration(arg0);
+		CCDelayTime* ret = CCDelayTime::create(arg0);
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCDelayTime::jsClass, S_CCDelayTime::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
 			pt->flags = kPointerTemporary;

@@ -153,7 +153,7 @@ scenes['test_sequence'] = function () {
 	var moveBy = new cc.MoveBy();
 	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
 	var rotate2 = rotate1.reverse();
-	var delay = cc.DelayTime.actionWithDuration(1.5);
+	var delay = cc.DelayTime.create(1.5);
 
 	var callAction = cc.CallFunc.create(this, function () {
 		cc.log("call action...");
@@ -182,7 +182,7 @@ scenes['test_wave3d'] = function () {
 	var moveBy = new cc.MoveBy();
 	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
 	var rotate2 = rotate1.reverse();
-	var delay = cc.DelayTime.actionWithDuration(1.5);
+	var delay = cc.DelayTime.create(1.5);
 	
 	var callAction = cc.CallFunc.create(this, function () {
 		cc.log("call action...");
