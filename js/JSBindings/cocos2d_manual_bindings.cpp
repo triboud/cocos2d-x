@@ -1,5 +1,27 @@
 #include "cocos2d_generated.hpp"
 
+MenuItemSelector::MenuItemSelector()
+: m_pCallBackFuncObj(NULL)
+, m_pThisJsObj(NULL)
+{
+}
+
+void MenuItemSelector::menuCallBack(CCObject* pSender)
+{
+    JSContext* cx  = ScriptingCore::getInstance().getGlobalContext();
+    CCAssert(JS_ValueToFunction(cx, OBJECT_TO_JSVAL(m_pCallBackFuncObj)), "Should be a function");
+    jsval rval;
+    jsval val = 0;
+
+    JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 1, &val, &rval);
+}
+
+void MenuItemSelector::setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj)
+{
+    m_pCallBackFuncObj = pCallBackFuncObj;
+    m_pThisJsObj = pThisJsObj;
+}
+
 JSBool S_CCNode::jsaddChild(JSContext *cx, uint32_t argc, jsval *vp) {
     JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
     S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
@@ -41,6 +63,89 @@ JSBool S_CCMenuItemSprite::jsinitWithNormalSprite(JSContext *cx, uint32_t argc, 
         bool ret = self->initWithNormalSprite(narg0, narg1, narg2, self, menu_selector(S_CCMenuItemSprite::menuAction));
         JS_SET_RVAL(cx, vp, BOOLEAN_TO_JSVAL(ret));
         
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemSprite::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
+    if (argc >= 2 && argc <= 5) {
+        JSObject *arg0 = NULL;
+        JSObject *arg1 = NULL;
+        JSObject *arg2 = NULL;
+        JSObject *arg3 = NULL;
+        JSObject *arg4 = NULL;
+        JSObject *pThisObj = NULL;
+        JSObject *pCallBackObj = NULL;
+
+        CCNode* narg0 = NULL;
+        CCNode* narg1 = NULL; 
+        CCNode* narg2 = NULL; 
+
+        if (argc == 2)
+        {
+            JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "oo", &arg0, &arg1);
+            JSGET_PTRSHELL(CCNode, narg0, arg0);
+            JSGET_PTRSHELL(CCNode, narg1, arg1);
+        }
+        else if (argc == 3)
+        {
+            JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "ooo", &arg0, &arg1, &arg2);
+            JSGET_PTRSHELL(CCNode, narg0, arg0);
+            JSGET_PTRSHELL(CCNode, narg1, arg1);
+            JSGET_PTRSHELL(CCNode, narg2, arg2);
+        }
+        else if (argc == 4)
+        {
+            JS_ConvertArguments(cx, 4, JS_ARGV(cx, vp), "oooo", &arg0, &arg1, &arg2, &arg3);
+            JSGET_PTRSHELL(CCNode, narg0, arg0);
+            JSGET_PTRSHELL(CCNode, narg1, arg1);
+            pThisObj = arg2;
+            pCallBackObj = arg3;
+        }
+        else
+        {
+            JS_ConvertArguments(cx, 5, JS_ARGV(cx, vp), "ooooo", &arg0, &arg1, &arg2, &arg3, &arg4);
+            JSGET_PTRSHELL(CCNode, narg0, arg0);
+            JSGET_PTRSHELL(CCNode, narg1, arg1);
+            JSGET_PTRSHELL(CCNode, narg2, arg2);
+            pThisObj = arg3;
+            pCallBackObj = arg4;
+        }
+     
+        CCMenuItemSprite* ret = NULL;
+        MenuItemSelector* pMenuItemSelector = NULL;
+        if (pThisObj && pCallBackObj)
+        {
+            pMenuItemSelector = new MenuItemSelector();
+            ret = CCMenuItemSprite::create(narg0, narg1, narg2, pMenuItemSelector, menu_selector(MenuItemSelector::menuCallBack));
+        }
+        else
+        {
+            ret = CCMenuItemSprite::create(narg0, narg1, narg2);
+        }
+
+        if (ret == NULL) {
+            CC_SAFE_DELETE(pMenuItemSelector);
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+        do {
+			ret->retain();
+            JSObject *tmp = JS_NewObject(cx, S_CCMenuItemSprite::jsClass, S_CCMenuItemSprite::jsObject, NULL);
+            if (pMenuItemSelector)
+            {
+                pMenuItemSelector->setJsCallBack(pThisObj, pCallBackObj);
+            }
+            
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+
         return JS_TRUE;
     }
     JS_SET_RVAL(cx, vp, JSVAL_TRUE);

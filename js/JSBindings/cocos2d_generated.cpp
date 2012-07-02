@@ -3469,41 +3469,14 @@ void S_CCMenuItemSprite::jsCreateClass(JSContext *cx, JSObject *globalObj, const
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("itemWithNormalSprite", S_CCMenuItemSprite::jsitemWithNormalSprite, 3, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCMenuItemSprite::jscreate, 3, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
 	jsObject = JS_InitClass(cx,globalObj,S_CCMenuItem::jsObject,jsClass,S_CCMenuItemSprite::jsConstructor,0,properties,funcs,NULL,st_funcs);
 }
 
-JSBool S_CCMenuItemSprite::jsitemWithNormalSprite(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 3) {
-		JSObject *arg0;
-		JSObject *arg1;
-		JSObject *arg2;
-		JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "ooo", &arg0, &arg1, &arg2);
-		CCNode* narg0; JSGET_PTRSHELL(CCNode, narg0, arg0);
-		CCNode* narg1; JSGET_PTRSHELL(CCNode, narg1, arg1);
-		CCNode* narg2; JSGET_PTRSHELL(CCNode, narg2, arg2);
-		CCMenuItemSprite* ret = CCMenuItemSprite::itemWithNormalSprite(narg0, narg1, narg2);
-		if (ret == NULL) {
-			JS_SET_RVAL(cx, vp, JSVAL_NULL);
-			return JS_TRUE;
-		}
-		do {
-			JSObject *tmp = JS_NewObject(cx, S_CCMenuItemSprite::jsClass, S_CCMenuItemSprite::jsObject, NULL);
-			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
-			pt->data = (void *)ret;
-			JS_SetPrivate(tmp, pt);
-			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
-		} while (0);
-		
-		return JS_TRUE;
-	}
-	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
-	return JS_TRUE;
-}
+
 JSBool S_CCMenuItemSprite::jsselected(JSContext *cx, uint32_t argc, jsval *vp) {
 	JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
 	S_CCMenuItemSprite* self = NULL; JSGET_PTRSHELL(S_CCMenuItemSprite, self, obj);
@@ -9711,7 +9684,7 @@ void S_CCMoveTo::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *n
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("actionWithDuration", S_CCMoveTo::jsactionWithDuration, 2, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCMoveTo::jscreate, 2, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -9766,18 +9739,20 @@ JSBool S_CCMoveTo::jsupdate(JSContext *cx, uint32_t argc, jsval *vp) {
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
-JSBool S_CCMoveTo::jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCMoveTo::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 2) {
 		double arg0;
 		JSObject *arg1;
 		JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "do", &arg0, &arg1);
 		CCPoint* narg1; JSGET_PTRSHELL(CCPoint, narg1, arg1);
-		CCMoveTo* ret = CCMoveTo::actionWithDuration(arg0, *narg1);
+		CCMoveTo* ret = CCMoveTo::create(arg0, *narg1);
+
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCMoveTo::jsClass, S_CCMoveTo::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
 			pt->flags = kPointerTemporary;

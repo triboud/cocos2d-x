@@ -43,8 +43,7 @@ scenes['test_move'] = function () {
 	var s2 = new cc.Sprite.create("grossinis_sister1.png");
 	s2.position = cc.Point.create(winSize.width / 2 - 50, winSize.height / 2);
 
-	var moveTo = new cc.MoveTo();
-	moveTo.initWithDuration(2.0, cc.Point.create(winSize.width, winSize.height / 2));
+	var moveTo = new cc.MoveTo.create(2.0, cc.Point.create(winSize.width, winSize.height / 2));
 	var moveBy = new cc.MoveBy();
 	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
 
@@ -245,11 +244,12 @@ var createMenu = function (labelText) {
 
 	var b1 = new cc.Sprite(); b1.initWithFile("b1.png");
 	var b2 = new cc.Sprite(); b2.initWithFile("b2.png");
-	item1 = new cc.MenuItemSprite();
-	item1.initWithNormalSprite(b1, b2);
-	item1.action = function () {
-		prevScene();
-	};
+
+	item1 = cc.MenuItemSprite.create(b1, b2, this, 
+		function (sender) {
+			prevScene();
+		}
+	);
 
 	var r1 = new cc.Sprite(); r1.initWithFile("r1.png");
 	var r2 = new cc.Sprite(); r2.initWithFile("r2.png");

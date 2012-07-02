@@ -18,12 +18,17 @@ typedef enum {
 } pointerShellFlags;
 
 #define JSGET_PTRSHELL(type, cobj, jsobj) do { \
-	pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(jsobj); \
-	if (pt) { \
-		cobj = (type *)pt->data; \
-	} else { \
-		cobj = NULL; \
-	} \
+    if (jsobj) {\
+	    pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(jsobj); \
+	    if (pt) { \
+		    cobj = (type *)pt->data; \
+	    } else { \
+		    cobj = NULL; \
+	    } \
+    } \
+    else { \
+        cobj = NULL; \
+    } \
 } while (0)
 
 #define MENU_ITEM_ACTION(klass) \
@@ -40,6 +45,18 @@ void klass::menuAction(cocos2d::CCObject *o) \
 		} \
 	} \
 }
+
+class MenuItemSelector : public CCObject
+{
+public:
+    MenuItemSelector();
+    void menuCallBack(CCObject* pSender);
+    void setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj);
+private:
+    JSObject* m_pCallBackFuncObj;
+    JSObject* m_pThisJsObj;
+};
+
 
 class S_CCTransitionMoveInL : public cocos2d::CCTransitionMoveInL
 {
@@ -496,11 +513,13 @@ public:
 class S_CCMenuItemSprite : public cocos2d::CCMenuItemSprite
 {
 	JSObject *m_jsobj;
+    MenuItemSelector* m_pMenuItemTarget;
 public:
 	static JSClass *jsClass;
 	static JSObject *jsObject;
 
-	S_CCMenuItemSprite(JSObject *obj) : CCMenuItemSprite(), m_jsobj(obj) {};
+	S_CCMenuItemSprite(JSObject *obj) : CCMenuItemSprite(), m_jsobj(obj), m_pMenuItemTarget(NULL) {};
+    virtual ~S_CCMenuItemSprite() { CC_SAFE_DELETE(m_pMenuItemTarget); }
 	enum {
 		kNormalImage = 1,
 		kSelectedImage,
@@ -515,7 +534,7 @@ public:
 	static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
 	static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
-	static JSBool jsitemWithNormalSprite(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinitWithNormalSprite(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsselected(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsunselected(JSContext *cx, uint32_t argc, jsval *vp);
@@ -1464,7 +1483,7 @@ public:
 	static JSBool jsinitWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsstartWithTarget(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
