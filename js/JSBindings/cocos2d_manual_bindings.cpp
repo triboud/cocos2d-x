@@ -257,9 +257,35 @@ JSBool S_CCMenuItemImage::jsinitWithNormalImage(JSContext *cx, uint32_t argc, js
     return JS_TRUE;
 }
 
-JSBool S_CCSequence::jsactions(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCSequence::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
     // just like CCSequence::actions
     if (argc > 0) {
+        do {
+            if (argc == 1) {
+                JSObject *arg0;
+                JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+                CCObject* tmpArg; JSGET_PTRSHELL(CCObject, tmpArg, arg0);
+                CCArray* narg0 = dynamic_cast<CCArray*>(tmpArg);
+                if (narg0 == NULL) break;
+                
+                CCFiniteTimeAction* ret = CCSequence::create(narg0);
+                if (ret == NULL) {
+                    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+                    return JS_TRUE;
+                }
+                do {
+                    JSObject *tmp = JS_NewObject(cx, S_CCFiniteTimeAction::jsClass, S_CCFiniteTimeAction::jsObject, NULL);
+                    pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+                    pt->flags = kPointerTemporary;
+                    pt->data = (void *)ret;
+                    JS_SetPrivate(tmp, pt);
+                    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+                } while (0);
+
+                return JS_TRUE;
+            }
+        } while(0);
+
         jsval* argv = JS_ARGV(cx, vp);
         // get first element
         S_CCSequence* prev;

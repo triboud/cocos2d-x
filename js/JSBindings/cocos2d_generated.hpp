@@ -622,9 +622,7 @@ public:
 	static JSBool jsstop(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsupdate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactions(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionsWithArray(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionOneTwo(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
