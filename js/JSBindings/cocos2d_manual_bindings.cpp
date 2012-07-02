@@ -11,7 +11,7 @@ void MenuItemSelector::menuCallBack(CCObject* pSender)
     JSContext* cx  = ScriptingCore::getInstance().getGlobalContext();
     CCAssert(JS_ValueToFunction(cx, OBJECT_TO_JSVAL(m_pCallBackFuncObj)), "Should be a function");
     jsval rval;
-    jsval val = 0;
+    jsval val;
 
     JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 1, &val, &rval);
 }
