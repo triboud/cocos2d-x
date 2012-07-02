@@ -10,12 +10,17 @@
 using namespace cocos2d;
 
 #define JSGET_PTRSHELL(type, cobj, jsobj) do { \
-	pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(jsobj); \
-	if (pt) { \
-		cobj = (type *)pt->data; \
-	} else { \
-		cobj = NULL; \
-	} \
+    if (jsobj) {\
+	    pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(jsobj); \
+	    if (pt) { \
+		    cobj = (type *)pt->data; \
+	    } else { \
+		    cobj = NULL; \
+	    } \
+    } \
+    else { \
+        cobj = NULL; \
+    } \
 } while (0)
 
 #define MENU_ITEM_ACTION(klass) \

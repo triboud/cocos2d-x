@@ -70,8 +70,7 @@ scenes['test_rotate'] = function () {
 
 	var rotateTo = new cc.RotateTo();
 	rotateTo.initWithDuration(1.0, 180.0);
-	var rotateBy = new cc.RotateBy();
-	rotateBy.initWithDuration(2.0, 90);
+	var rotateBy = cc.RotateBy.create(2.0, 90);
 
 	s1.runAction(rotateTo);
 	s2.runAction(rotateBy);
@@ -148,17 +147,17 @@ scenes['test_sequence'] = function () {
 	var s1 = new cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
 
-	var rotate1 = new cc.RotateBy();
-	rotate1.initWithDuration(1.0, 90);
+	var rotate1 = cc.RotateBy.create(1.0, 90);
 	var moveBy = new cc.MoveBy();
 	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
+	var fadeOut = cc.FadeOut.create(2);
 	var rotate2 = rotate1.reverse();
 	var delay = cc.DelayTime.create(1.5);
 
 	var callAction = cc.CallFunc.create(this, function () {
 		cc.log("call action...");
 	});
-	var seq = cc.Sequence.create(rotate1, moveBy, delay, rotate2, callAction);
+	var seq = cc.Sequence.create(rotate1, moveBy, delay, rotate2, fadeOut, callAction);
 	s1.runAction(seq);
 
 	var scene = new cc.Scene(); scene.init();
@@ -177,8 +176,7 @@ scenes['test_wave3d'] = function () {
 	var s1 = new cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
 
-	var rotate1 = new cc.RotateBy();
-	rotate1.initWithDuration(1.0, 90);
+	var rotate1 = cc.RotateBy.create(1.0, 90);
 	var moveBy = new cc.MoveBy();
 	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
 	var rotate2 = rotate1.reverse();
