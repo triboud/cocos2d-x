@@ -21,7 +21,7 @@ typedef enum {
     if (jsobj) {\
 	    pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(jsobj); \
 	    if (pt) { \
-		    cobj = (type *)pt->data; \
+		    cobj = (type*)pt->data; \
 	    } else { \
 		    cobj = NULL; \
 	    } \
@@ -4105,10 +4105,8 @@ public:
 	static JSBool jsdraw(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsisDirty(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsisTextureRectRotated(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsspriteWithTexture(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsspriteWithSpriteFrame(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsspriteWithSpriteFrameName(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsspriteWithFile(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreateWithSpriteFrameName(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinit(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsremoveChild(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsremoveAllChildrenWithCleanup(JSContext *cx, uint32_t argc, jsval *vp);

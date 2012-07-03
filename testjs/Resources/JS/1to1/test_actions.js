@@ -19,12 +19,6 @@ cc.Size.create = function (w, h) {
 	return sz;
 };
 
-cc.Sprite.create = function (file) {
-	var s = new cc.Sprite();
-	s.initWithFile(file);
-	return s;
-};
-
 cc.Color3B.create = function(r, g, b) {
 	var ret = new cc.Color3B();
 	ret.r = r;
@@ -32,6 +26,13 @@ cc.Color3B.create = function(r, g, b) {
 	ret.b = b;
 	return ret;
 };
+
+cc.RectMake = function (x, y, w, h) {
+	var ret = new cc.Rect();
+	ret.origin = cc.Point.create(x, y);
+	ret.size = cc.Size.create(w, h);
+	return ret;
+}
 
 var pointZero = cc.Point.create(0, 0);
 var sizeZero = cc.Size.create(0, 0);
@@ -46,9 +47,9 @@ scenes.currentScene = 1;
  * tests the most basic function: moveTo and moveBy
  */
 scenes['test_move'] = function () {
-	var s1 = new cc.Sprite.create("grossini_dance_05.png");
+	var s1 = cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
-	var s2 = new cc.Sprite.create("grossinis_sister1.png");
+	var s2 = cc.Sprite.create("grossinis_sister1.png");
 	s2.position = cc.Point.create(winSize.width / 2 - 50, winSize.height / 2);
 
 	var moveTo = new cc.MoveTo.create(2.0, cc.Point.create(winSize.width, winSize.height / 2));
@@ -70,9 +71,9 @@ scenes['test_move'] = function () {
 };
 
 scenes['test_rotate'] = function () {
-	var s1 = new cc.Sprite.create("grossini_dance_05.png");
+	var s1 = cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
-	var s2 = new cc.Sprite.create("grossinis_sister1.png");
+	var s2 = cc.Sprite.create("grossinis_sister1.png");
 	s2.rotation = 90;
 	s2.position = cc.Point.create(winSize.width / 2 - 100, winSize.height / 2);
 
@@ -98,9 +99,10 @@ scenes['test_animation'] = function () {
 	var spriteFrameCache = cc.SpriteFrameCache.sharedSpriteFrameCache();
 	spriteFrameCache.addSpriteFramesWithFile("tank.plist");
 
+	//var spriteFrame1 = spriteFrameCache.spriteFrameByName("tank1.png");
+	//var sprite = cc.Sprite.create(spriteFrame1);
 	// create a new sprite with a sprite frame
-	var sprite = new cc.Sprite();
-	sprite.initWithSpriteFrameName("tank1.png");
+	var sprite = cc.Sprite.createWithSpriteFrameName("tank1.png");
 	sprite.position = cc.Point.create(winSize.width / 2, winSize.height / 2);
 
 	// create animation
@@ -118,9 +120,23 @@ scenes['test_animation'] = function () {
 	sprite.anim = cc.Animate.create(animation);
 	sprite.runAction(cc.RepeatForever.create(sprite.anim));
 
+	var texture = cc.TextureCache.sharedTextureCache().addImage("grossini_dance_atlas.png");
+    var sprite1 = cc.Sprite.create(texture, cc.RectMake(85*0, 121*1, 85, 121));
+    var sprite2 = cc.Sprite.create(texture, cc.RectMake(85*1, 121*1, 85, 121));
+    var sprite3 = cc.Sprite.create(texture, cc.RectMake(85*2, 121*1, 85, 121));
+    var sprite4 = cc.Sprite.create(texture, cc.RectMake(85*3, 121*1, 85, 121));
+
+    sprite1.position = cc.Point.create( (winSize.width/5)*1, (winSize.height/3)*1) ;
+    sprite2.position = cc.Point.create( (winSize.width/5)*2, (winSize.height/3)*1) ;
+    sprite3.position = cc.Point.create( (winSize.width/5)*3, (winSize.height/3)*1) ;
+    sprite4.position = cc.Point.create( (winSize.width/5)*4, (winSize.height/3)*1) ;
+
 	var scene = new cc.Scene(); scene.init();
 	scene.addChild(sprite);
-
+	scene.addChild(sprite1);
+	scene.addChild(sprite2);
+	scene.addChild(sprite3);
+	scene.addChild(sprite4);
 	// add the menu
 	var menu = createMenu("Test Animation");
 	scene.addChild(menu, 1);
@@ -129,7 +145,7 @@ scenes['test_animation'] = function () {
 };
 
 scenes['test_repeat'] = function () {
-	var s1 = new cc.Sprite.create("grossinis_sister1.png");
+	var s1 = cc.Sprite.create("grossinis_sister1.png");
 	s1.position = cc.Point.create(winSize.width / 2, winSize.height / 2);
 
 	var rotateBy = cc.RotateBy.create(1.0, 90);
@@ -149,7 +165,7 @@ scenes['test_repeat'] = function () {
 
 scenes['test_sequence'] = function () {
 	cc.log("test_sequence....");
-	var s1 = new cc.Sprite.create("grossini_dance_05.png");
+	var s1 = cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
 
 	var rotate1 = cc.RotateBy.create(1.0, 90);
@@ -178,7 +194,7 @@ scenes['test_sequence'] = function () {
 scenes['test_wave3d'] = function () {
 	cc.log("test_wave3d....");
 	var node = new cc.Node();
-	var s1 = new cc.Sprite.create("grossini_dance_05.png");
+	var s1 = cc.Sprite.create("grossini_dance_05.png");
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
 
 	var rotate1 = cc.RotateBy.create(1.0, 90);
@@ -253,8 +269,8 @@ var playCurrentScene = function () {
 var createMenu = function (labelText) {
 //	var hudMenu = cc.Menu.create();
 
-	var b1 = new cc.Sprite(); b1.initWithFile("b1.png");
-	var b2 = new cc.Sprite(); b2.initWithFile("b2.png");
+	var b1 = cc.Sprite.create("b1.png");
+	var b2 = cc.Sprite.create("b2.png");
 
 	item1 = cc.MenuItemSprite.create(b1, b2, this, 
 		function (sender) {
@@ -262,8 +278,8 @@ var createMenu = function (labelText) {
 		}
 	);
 
-	var r1 = new cc.Sprite(); r1.initWithFile("r1.png");
-	var r2 = new cc.Sprite(); r2.initWithFile("r2.png");
+	var r1 = cc.Sprite.create("r1.png");
+	var r2 = cc.Sprite.create("r2.png");
 	item2 = cc.MenuItemSprite.create(r1, r2, this,
 		function (sender) {
 			// cc.executeScript("JS/1to1/test_actions.js");
@@ -271,8 +287,8 @@ var createMenu = function (labelText) {
 		}
 	);
 
-	var f1 = new cc.Sprite(); f1.initWithFile("f1.png");
-	var f2 = new cc.Sprite(); f2.initWithFile("f2.png");
+	var f1 = cc.Sprite.create("f1.png");
+	var f2 = cc.Sprite.create("f2.png");
 	item3 = cc.MenuItemSprite.create(f1, f2, this,
 		function (sender)
 		{
@@ -280,8 +296,8 @@ var createMenu = function (labelText) {
 		}
 	);
 
-	var c1 = new cc.Sprite(); c1.initWithFile("r1.png");
-	var c2 = new cc.Sprite(); c2.initWithFile("r2.png");
+	var c1 = cc.Sprite.create("r1.png");
+	var c2 = cc.Sprite.create("r2.png");
 	item4 = cc.MenuItemSprite.create(c1, c2, this,
 		function (sender)
 		{

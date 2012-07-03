@@ -26752,10 +26752,8 @@ void S_CCSprite::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *n
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("spriteWithTexture", S_CCSprite::jsspriteWithTexture, 1, JSPROP_PERMANENT | JSPROP_SHARED),
-			JS_FN("spriteWithSpriteFrame", S_CCSprite::jsspriteWithSpriteFrame, 1, JSPROP_PERMANENT | JSPROP_SHARED),
-			JS_FN("spriteWithSpriteFrameName", S_CCSprite::jsspriteWithSpriteFrameName, 1, JSPROP_PERMANENT | JSPROP_SHARED),
-			JS_FN("spriteWithFile", S_CCSprite::jsspriteWithFile, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCSprite::jscreate, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("createWithSpriteFrameName", S_CCSprite::jscreateWithSpriteFrameName, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -26801,55 +26799,8 @@ JSBool S_CCSprite::jsisTextureRectRotated(JSContext *cx, uint32_t argc, jsval *v
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
-JSBool S_CCSprite::jsspriteWithTexture(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 1) {
-		JSObject *arg0;
-		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
-		CCTexture2D* narg0; JSGET_PTRSHELL(CCTexture2D, narg0, arg0);
-		CCSprite* ret = CCSprite::spriteWithTexture(narg0);
-		if (ret == NULL) {
-			JS_SET_RVAL(cx, vp, JSVAL_NULL);
-			return JS_TRUE;
-		}
-		do {
-			JSObject *tmp = JS_NewObject(cx, S_CCSprite::jsClass, S_CCSprite::jsObject, NULL);
-			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
-			pt->data = (void *)ret;
-			JS_SetPrivate(tmp, pt);
-			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
-		} while (0);
-		
-		return JS_TRUE;
-	}
-	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
-	return JS_TRUE;
-}
-JSBool S_CCSprite::jsspriteWithSpriteFrame(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 1) {
-		JSObject *arg0;
-		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
-		CCSpriteFrame* narg0; JSGET_PTRSHELL(CCSpriteFrame, narg0, arg0);
-		CCSprite* ret = CCSprite::spriteWithSpriteFrame(narg0);
-		if (ret == NULL) {
-			JS_SET_RVAL(cx, vp, JSVAL_NULL);
-			return JS_TRUE;
-		}
-		do {
-			JSObject *tmp = JS_NewObject(cx, S_CCSprite::jsClass, S_CCSprite::jsObject, NULL);
-			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
-			pt->data = (void *)ret;
-			JS_SetPrivate(tmp, pt);
-			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
-		} while (0);
-		
-		return JS_TRUE;
-	}
-	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
-	return JS_TRUE;
-}
-JSBool S_CCSprite::jsspriteWithSpriteFrameName(JSContext *cx, uint32_t argc, jsval *vp) {
+
+JSBool S_CCSprite::jscreateWithSpriteFrameName(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 1) {
 		JSString *arg0;
 		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
@@ -26873,20 +26824,76 @@ JSBool S_CCSprite::jsspriteWithSpriteFrameName(JSContext *cx, uint32_t argc, jsv
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
-JSBool S_CCSprite::jsspriteWithFile(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 1) {
-		JSString *arg0;
-		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
-		char *narg0 = JS_EncodeString(cx, arg0);
-		CCSprite* ret = CCSprite::spriteWithFile(narg0);
-		if (ret == NULL) {
-			JS_SET_RVAL(cx, vp, JSVAL_NULL);
-			return JS_TRUE;
-		}
+JSBool S_CCSprite::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
+    CCSprite* ret = NULL;
+	if (argc == 0 || argc == 1 || argc == 2)
+    {
+        if (argc == 0)
+        {
+            ret = CCSprite::create();
+        }
+        else
+        {
+            jsval* argvp = JS_ARGV(cx, vp);
+            JSObject* pJsObj = NULL;
+            JS_ValueToObject(cx, *argvp, &pJsObj);
+            CCObject* pNativeObj = NULL; JSGET_PTRSHELL(CCObject, pNativeObj, pJsObj);
+            if (pNativeObj == NULL)
+            { // spriteWithFile
+                JSString* pJsStr = JS_ValueToString(cx, *argvp);
+                argvp++;
+                char *narg0 = JS_EncodeString(cx, pJsStr);
+                if (argc == 1)
+                {
+                    ret = CCSprite::create(narg0);
+                }
+                else
+                {
+                    JSObject* pJsRect = NULL;
+                    JS_ValueToObject(cx, *argvp++, &pJsRect);
+                    CCRect* pRect = NULL; JSGET_PTRSHELL(CCRect, pRect, pJsRect);
+                    CCAssert(pRect != NULL, "");
+                    ret = CCSprite::create(narg0, *pRect);
+                }
+
+            }
+            else// spriteWithTexture or spriteWithSpriteFrame
+            {
+                argvp++;
+                CCTexture2D* pTexture = dynamic_cast<CCTexture2D*>(pNativeObj);
+                if (pTexture != NULL)
+                { //spriteWithTexture
+                    if (argc == 1)
+                    {
+                        ret = CCSprite::create(pTexture);
+                    }
+                    else
+                    {
+                        JSObject* pJsRect = NULL;
+                        JS_ValueToObject(cx, *argvp++, &pJsRect);
+                        CCRect* pRect = NULL; JSGET_PTRSHELL(CCRect, pRect, pJsRect);
+                        CCAssert(pRect != NULL, "");
+                        ret = CCSprite::create(pTexture, *pRect);
+                    }
+                }
+                else
+                { //spriteWithSpriteFrame
+                    CCSpriteFrame* pSpriteFrame = dynamic_cast<CCSpriteFrame*>(pNativeObj);
+                    CCAssert(pSpriteFrame != NULL, "");
+                    ret = CCSprite::create(pSpriteFrame);
+                }
+            }
+        }
+        if (ret == NULL) {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCSprite::jsClass, S_CCSprite::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;//FIXME: ? kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
