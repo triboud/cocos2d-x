@@ -9697,7 +9697,7 @@ JSBool S_CCMoveTo::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCMoveTo::jsClass, S_CCMoveTo::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;//kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -18157,6 +18157,7 @@ void S_CCScene::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *na
 		};
 
 		static JSFunctionSpec st_funcs[] = {
+            JS_FN("create", S_CCScene::jscreate, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -18188,6 +18189,30 @@ void S_CCScene::update(float delta) {
 		}
 	}
 }
+
+JSBool S_CCScene::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
+    if (argc == 0) {
+        CCScene* ret = CCScene::create();
+        if (ret == NULL) {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+        do {
+            ret->retain();
+            JSObject *tmp = JS_NewObject(cx, S_CCScene::jsClass, S_CCScene::jsObject, NULL);
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = 0;//kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    return JS_TRUE;
+}
+
 
 JSClass* S_CCDirector::jsClass = NULL;
 JSObject* S_CCDirector::jsObject = NULL;
@@ -20742,9 +20767,10 @@ JSBool S_CCMoveBy::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCMoveBy::jsClass, S_CCMoveBy::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;//kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));

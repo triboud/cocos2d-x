@@ -52,14 +52,13 @@ scenes['test_move'] = function () {
 	var s2 = cc.Sprite.create("grossinis_sister1.png");
 	s2.position = cc.Point.create(winSize.width / 2 - 50, winSize.height / 2);
 
-	var moveTo = new cc.MoveTo.create(2.0, cc.Point.create(winSize.width, winSize.height / 2));
-	var moveBy = new cc.MoveBy();
-	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
+	var moveTo = cc.MoveTo.create(2.0, cc.Point.create(winSize.width, winSize.height / 2));
+	var moveBy = cc.MoveBy.create(2.0, cc.Point.create(100, 100));
 
 	s1.runAction(moveTo);
 	s2.runAction(moveBy);
 
-	var scene = new cc.Scene(); scene.init();
+	var scene = cc.Scene.create();
 	scene.addChild(s1);
 	scene.addChild(s2);
 
@@ -84,7 +83,7 @@ scenes['test_rotate'] = function () {
 	s1.runAction(rotateTo);
 	s2.runAction(rotateBy);
 
-	var scene = new cc.Scene(); scene.init();
+	var scene = cc.Scene.create();
 	scene.addChild(s1);
 	scene.addChild(s2);
 
@@ -131,7 +130,7 @@ scenes['test_animation'] = function () {
     sprite3.position = cc.Point.create( (winSize.width/5)*3, (winSize.height/3)*1) ;
     sprite4.position = cc.Point.create( (winSize.width/5)*4, (winSize.height/3)*1) ;
 
-	var scene = new cc.Scene(); scene.init();
+	var scene = cc.Scene.create();
 	scene.addChild(sprite);
 	scene.addChild(sprite1);
 	scene.addChild(sprite2);
@@ -153,7 +152,7 @@ scenes['test_repeat'] = function () {
 	var repeat = cc.RepeatForever.create(rotateBy);
 
 	s1.runAction(repeat);
-	var scene = new cc.Scene(); scene.init();
+	var scene = cc.Scene.create();
 	scene.addChild(s1);
 
 	// add the menu
@@ -181,7 +180,7 @@ scenes['test_sequence'] = function () {
 	var seq = cc.Sequence.create(rotate1, moveBy, delay, rotate2, fadeOut, callAction);
 	s1.runAction(seq);
 
-	var scene = new cc.Scene(); scene.init();
+	var scene = cc.Scene.create();
 	scene.addChild(s1);
 
 	// add the menu
@@ -210,7 +209,7 @@ scenes['test_wave3d'] = function () {
 	var seq = cc.Sequence.create(rotate1, moveBy, delay, rotate2, callAction);
 	s1.runAction(seq);
 
-	var scene = new cc.Scene(); scene.init();
+	var scene = cc.Scene.create();
 	node.addChild(s1);
 
 	// simple wave 3d
