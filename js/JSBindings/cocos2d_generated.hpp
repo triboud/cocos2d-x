@@ -201,6 +201,7 @@ public:
 	static JSBool jsregisterScriptTouchHandler(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsunregisterScriptTouchHandler(JSContext *cx, uint32_t argc, jsval *vp);
 	virtual void update(float delta);
+    static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 

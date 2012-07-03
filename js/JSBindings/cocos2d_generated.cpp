@@ -785,6 +785,7 @@ void S_CCLayer::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *na
 		};
 
 		static JSFunctionSpec st_funcs[] = {
+            JS_FN("create", S_CCLayer::jscreate, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -805,6 +806,7 @@ JSBool S_CCLayer::jsinit(JSContext *cx, uint32_t argc, jsval *vp) {
 	return JS_TRUE;
 }
 void S_CCLayer::onEnter() {
+    CCLayer::onEnter();
 	if (m_jsobj) {
 		JSContext* cx = ScriptingCore::getInstance().getGlobalContext();
 		JSBool found; JS_HasProperty(cx, m_jsobj, "onEnter", &found);
@@ -813,8 +815,7 @@ void S_CCLayer::onEnter() {
 			JS_GetProperty(cx, m_jsobj, "onEnter", &fval);
 			JS_CallFunctionValue(cx, m_jsobj, fval, 0, 0, &rval);
 		}
-	}
-			CCLayer::onEnter();
+	}	
 }
 void S_CCLayer::onExit() {
 	if (m_jsobj) {
@@ -826,7 +827,7 @@ void S_CCLayer::onExit() {
 			JS_CallFunctionValue(cx, m_jsobj, fval, 0, 0, &rval);
 		}
 	}
-			CCLayer::onExit();
+	CCLayer::onExit();
 }
 void S_CCLayer::onEnterTransitionDidFinish() {
 	if (m_jsobj) {
@@ -1104,6 +1105,30 @@ void S_CCLayer::update(float delta) {
 			JS_CallFunctionValue(cx, m_jsobj, fval, 1, &jsdelta, &rval);
 		}
 	}
+}
+
+JSBool S_CCLayer::jscreate(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 0) {
+        CCLayer* ret = CCLayer::create();
+        if (ret == NULL) {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+        do {
+            ret->retain();
+            JSObject *tmp = JS_NewObject(cx, S_CCLayer::jsClass, S_CCLayer::jsObject, NULL);
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = 0;//kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    return JS_TRUE;
 }
 
 JSClass* S_CCEaseBackInOut::jsClass = NULL;
