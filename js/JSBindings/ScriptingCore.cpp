@@ -42,6 +42,7 @@ ScriptingCore::ScriptingCore()
     S_CCPoint::jsCreateClass(this->cx, cocos, "Point");
     S_CCSize::jsCreateClass(this->cx, cocos, "Size");
     S_CCRect::jsCreateClass(this->cx, cocos, "Rect");
+    S_CCColor3B::jsCreateClass(this->cx, cocos, "Color3B");
     S__ccGridSize::jsCreateClass(this->cx, cocos, "GridSize");
     S_CCSet::jsCreateClass(this->cx, cocos, "Set");
     S_CCTouch::jsCreateClass(this->cx, cocos, "Touch");

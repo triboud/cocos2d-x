@@ -1157,7 +1157,7 @@ public:
 	static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
 	static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
-	static JSBool jstransitionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinitWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
 	virtual void onEnter();
 	virtual void onExit();
@@ -4377,6 +4377,28 @@ public:
     static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
+
+class S_CCColor3B : public cocos2d::ccColor3B
+{
+    JSObject *m_jsobj;
+public:
+    static JSClass *jsClass;
+    static JSObject *jsObject;
+
+    S_CCColor3B(JSObject *obj) : ccColor3B(), m_jsobj(obj) {};
+    enum {
+        kR = 1,
+        kG,
+        kB
+    };
+
+    static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
+    static void jsFinalize(JSContext *cx, JSObject *obj);
+    static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
+    static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
+    static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
+};
+
 
 void register_enums_cocos2d_generated(JSObject *global);
 

@@ -595,3 +595,98 @@ JSBool S_CCUserDefault::jssetStringForKey(JSContext *cx, uint32_t argc, jsval *v
     JS_SET_RVAL(cx, vp, JSVAL_TRUE);
     return JS_TRUE;
 }
+
+JSClass* S_CCColor3B::jsClass = NULL;
+JSObject* S_CCColor3B::jsObject = NULL;
+
+JSBool S_CCColor3B::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject *obj = JS_NewObject(cx, S_CCColor3B::jsClass, S_CCColor3B::jsObject, NULL);
+    S_CCColor3B *cobj = new S_CCColor3B(obj);
+    pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+    pt->flags = 0; pt->data = cobj;
+    JS_SetPrivate(obj, pt);
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+    return JS_TRUE;
+}
+
+void S_CCColor3B::jsFinalize(JSContext *cx, JSObject *obj)
+{
+    pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(obj);
+    if (pt) {
+        if (!(pt->flags & kPointerTemporary) && pt->data) delete (S_CCColor3B *)pt->data;
+        JS_free(cx, pt);
+    }
+}
+
+JSBool S_CCColor3B::jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val)
+{
+    int32_t propId = JSID_TO_INT(_id);
+    S_CCColor3B *cobj; JSGET_PTRSHELL(S_CCColor3B, cobj, obj);
+    if (!cobj) return JS_FALSE;
+    switch(propId) {
+    case kR:
+        do { jsval tmp; JS_NewNumberValue(cx, cobj->r, &tmp); JS_SET_RVAL(cx, val, tmp); } while (0);
+        break;
+    case kG:
+        do { jsval tmp; JS_NewNumberValue(cx, cobj->g, &tmp); JS_SET_RVAL(cx, val, tmp); } while (0);
+        break;
+    case kB:
+        do { jsval tmp; JS_NewNumberValue(cx, cobj->b, &tmp); JS_SET_RVAL(cx, val, tmp); } while (0);
+        break;
+    default:
+        break;
+    }
+    return JS_TRUE;
+}
+
+JSBool S_CCColor3B::jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val)
+{
+    int32_t propId = JSID_TO_INT(_id);
+    S_CCColor3B *cobj; JSGET_PTRSHELL(S_CCColor3B, cobj, obj);
+    if (!cobj) return JS_FALSE;
+    switch(propId) {
+    case kR:
+        do { double tmp; JS_ValueToNumber(cx, *val, &tmp); cobj->r = tmp; } while (0);
+        break;
+    case kG:
+        do { double tmp; JS_ValueToNumber(cx, *val, &tmp); cobj->g = tmp; } while (0);
+        break;
+    case kB:
+        do { double tmp; JS_ValueToNumber(cx, *val, &tmp); cobj->b = tmp; } while (0);
+    default:
+        break;
+    }
+    return JS_TRUE;
+}
+
+void S_CCColor3B::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name)
+{
+    jsClass = (JSClass *)calloc(1, sizeof(JSClass));
+    jsClass->name = name;
+    jsClass->addProperty = JS_PropertyStub;
+    jsClass->delProperty = JS_PropertyStub;
+    jsClass->getProperty = JS_PropertyStub;
+    jsClass->setProperty = JS_StrictPropertyStub;
+    jsClass->enumerate = JS_EnumerateStub;
+    jsClass->resolve = JS_ResolveStub;
+    jsClass->convert = JS_ConvertStub;
+    jsClass->finalize = jsFinalize;
+    jsClass->flags = JSCLASS_HAS_PRIVATE;
+    static JSPropertySpec properties[] = {
+        {"r", kR, JSPROP_PERMANENT | JSPROP_SHARED, S_CCColor3B::jsPropertyGet, S_CCColor3B::jsPropertySet},
+        {"g", kG, JSPROP_PERMANENT | JSPROP_SHARED, S_CCColor3B::jsPropertyGet, S_CCColor3B::jsPropertySet},
+        {"b", kB, JSPROP_PERMANENT | JSPROP_SHARED, S_CCColor3B::jsPropertyGet, S_CCColor3B::jsPropertySet},
+        {0, 0, 0, 0, 0}
+    };
+
+    static JSFunctionSpec funcs[] = {
+        JS_FS_END
+    };
+
+    static JSFunctionSpec st_funcs[] = {
+        JS_FS_END
+    };
+
+    jsObject = JS_InitClass(cx,globalObj,NULL,jsClass,S_CCColor3B::jsConstructor,0,properties,funcs,NULL,st_funcs);
+}

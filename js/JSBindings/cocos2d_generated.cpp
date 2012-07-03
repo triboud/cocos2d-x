@@ -7354,14 +7354,14 @@ void S_CCTransitionFade::jsCreateClass(JSContext *cx, JSObject *globalObj, const
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("transitionWithDuration", S_CCTransitionFade::jstransitionWithDuration, 3, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCTransitionFade::jscreate, 3, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
 	jsObject = JS_InitClass(cx,globalObj,S_CCTransitionScene::jsObject,jsClass,S_CCTransitionFade::jsConstructor,0,properties,funcs,NULL,st_funcs);
 }
 
-JSBool S_CCTransitionFade::jstransitionWithDuration(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCTransitionFade::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 3) {
 		double arg0;
 		JSObject *arg1;
@@ -7369,15 +7369,16 @@ JSBool S_CCTransitionFade::jstransitionWithDuration(JSContext *cx, uint32_t argc
 		JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "doo", &arg0, &arg1, &arg2);
 		CCScene* narg1; JSGET_PTRSHELL(CCScene, narg1, arg1);
 		ccColor3B* narg2; JSGET_PTRSHELL(ccColor3B, narg2, arg2);
-		CCTransitionFade* ret = CCTransitionFade::transitionWithDuration(arg0, narg1, *narg2);
+		CCTransitionFade* ret = CCTransitionFade::create(arg0, narg1, *narg2);
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCTransitionFade::jsClass, S_CCTransitionFade::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;// FIXME: ? kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));

@@ -25,6 +25,14 @@ cc.Sprite.create = function (file) {
 	return s;
 };
 
+cc.Color3B.create = function(r, g, b) {
+	var ret = new cc.Color3B();
+	ret.r = r;
+	ret.g = g;
+	ret.b = b;
+	return ret;
+};
+
 var pointZero = cc.Point.create(0, 0);
 var sizeZero = cc.Size.create(0, 0);
 
@@ -108,7 +116,7 @@ scenes['test_animation'] = function () {
 	}
 	// action stored in the sprite to avoid GC
 	sprite.anim = cc.Animate.create(animation);
-	sprite.runAction(sprite.anim);
+	sprite.runAction(cc.RepeatForever.create(sprite.anim));
 
 	var scene = new cc.Scene(); scene.init();
 	scene.addChild(sprite);
@@ -235,9 +243,9 @@ var playCurrentScene = function () {
 	var scene = scenes[name]();
 	// cc.log("running scene: " + name + "(" + scene + ")");
 	if (director.runningScene === null) {
-		director.runWithScene(scene);
+		director.runWithScene(cc.TransitionFade.create(0.5, scene, cc.Color3B.create(255, 255, 255)));
 	} else {
-		director.replaceScene(scene);
+		director.replaceScene(cc.TransitionFade.create(0.5, scene, cc.Color3B.create(255, 255, 255)));
 	}
 };
 
