@@ -399,17 +399,43 @@ JSBool S_CCFileUtils::jsfullPathFromRelativeFile(JSContext *cx, uint32_t argc, j
 }
 
 JSBool S_CCLabelTTF::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
-    if (argc == 5) {
-        JSString *arg0;
-        JSObject *arg1;
-        int arg2;
-        JSString *arg3;
-        double arg4;
-        JS_ConvertArguments(cx, 5, JS_ARGV(cx, vp), "SoiSd", &arg0, &arg1, &arg2, &arg3, &arg4);
-        char *narg0 = JS_EncodeString(cx, arg0);
-        CCSize* narg1; JSGET_PTRSHELL(CCSize, narg1, arg1);
-        char *narg3 = JS_EncodeString(cx, arg3);
-        CCLabelTTF *ret = CCLabelTTF::create(narg0, *narg1, (CCTextAlignment)arg2, narg3, arg4);
+    if (argc == 3 || argc == 5 || argc == 6) {
+        JSString *jsStr = NULL;
+        JSObject *jsDim = NULL;
+        int hAlignment = 0;
+        int vAlignment = 0;
+        JSString *jsFontName = NULL;
+        double dFontSize = 0.0;
+
+        char *str = NULL;
+        char *fontName = NULL;
+        CCLabelTTF *ret = NULL;
+        CCSize* dim = NULL;
+
+        if (argc == 3)
+        {
+            JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "SSd", &jsStr, &jsFontName, &dFontSize);
+            str = JS_EncodeString(cx, jsStr);
+            fontName = JS_EncodeString(cx, jsFontName);
+            ret = CCLabelTTF::create(str, fontName, dFontSize);
+        }
+        else if (argc == 5)
+        {
+            JS_ConvertArguments(cx, 5, JS_ARGV(cx, vp), "SoiSd", &jsStr, &jsDim, &hAlignment, &jsFontName, &dFontSize);
+            str = JS_EncodeString(cx, jsStr);
+            fontName = JS_EncodeString(cx, jsFontName);
+            JSGET_PTRSHELL(CCSize, dim, jsDim);
+            ret = CCLabelTTF::create(str, *dim, (CCTextAlignment)hAlignment, fontName, dFontSize);
+        }
+        else
+        {
+            JS_ConvertArguments(cx, 5, JS_ARGV(cx, vp), "SoiiSd", &jsStr, &jsDim, &hAlignment, &vAlignment, &jsFontName, &dFontSize);
+            str = JS_EncodeString(cx, jsStr);
+            fontName = JS_EncodeString(cx, jsFontName);
+            JSGET_PTRSHELL(CCSize, dim, jsDim);
+            ret = CCLabelTTF::create(str, *dim, (CCTextAlignment)hAlignment, (CCVerticalTextAlignment)vAlignment, fontName, dFontSize);
+        }
+        
         if (ret == NULL) {
             JS_SET_RVAL(cx, vp, JSVAL_NULL);
             return JS_TRUE;
@@ -418,7 +444,7 @@ JSBool S_CCLabelTTF::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             ret->retain();
             JSObject *tmp = JS_NewObject(cx, S_CCLabelTTF::jsClass, S_CCLabelTTF::jsObject, NULL);
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = kPointerTemporary;
+            pt->flags = 0;// kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -504,32 +530,72 @@ JSBool S_CCRenderTexture::jsinitWithWidthAndHeight(JSContext *cx, uint32_t argc,
     return JS_TRUE;
 }
 
-JSBool S_CCMenuItemLabel::jsitemWithLabel(JSContext *cx, uint32_t argc, jsval *vp) {
-    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
-    S_CCRenderTexture* self = NULL; JSGET_PTRSHELL(S_CCRenderTexture, self, obj);
-    if (self == NULL) return JS_FALSE;
-    if (argc == 1) {
-        JSObject *arg0;
-        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
-        CCNode* narg0; JSGET_PTRSHELL(CCNode, narg0, arg0);
-        CCMenuItemLabel *ret = CCMenuItemLabel::itemWithLabel(narg0, self, menu_selector(S_CCMenuItemLabel::menuAction));
+JSBool S_CCMenuItemLabel::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
+    if (argc == 1 || argc == 3) {
+        JSObject *arg0 = NULL;
+        JSObject *arg1 = NULL;
+        JSObject *arg2 = NULL;
+
+        JSObject* pThisObj = NULL;
+        JSObject* pCallBackObj = NULL;
+
+        if (argc == 1)
+        {
+            JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+        }
+        else if (argc == 3)
+        {
+            JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "ooo", &arg0, &arg1, &arg2);
+            pThisObj = arg1;
+            pCallBackObj = arg2;
+        }
+
+        S_CCMenuItemLabel* ret = new S_CCMenuItemLabel(NULL);
+        if (ret)
+        {
+            CCNode* label = NULL; JSGET_PTRSHELL(CCNode, label, arg0);
+            if (pThisObj && pCallBackObj)
+            {
+                ret->m_pMenuItemSelector = new MenuItemSelector();
+                
+                if (!ret->initWithLabel(label, ret->m_pMenuItemSelector, menu_selector(MenuItemSelector::menuCallBack)))
+                {
+                    CC_SAFE_DELETE(ret->m_pMenuItemSelector);
+                    CC_SAFE_DELETE(ret);
+                }
+            }
+            else
+            {
+                if (!ret->initWithLabel(label, NULL, NULL))
+                {
+                    CC_SAFE_DELETE(ret);
+                }
+            }
+        }
+
         if (ret == NULL) {
             JS_SET_RVAL(cx, vp, JSVAL_NULL);
             return JS_TRUE;
         }
         do {
             JSObject *tmp = JS_NewObject(cx, S_CCMenuItemLabel::jsClass, S_CCMenuItemLabel::jsObject, NULL);
+            ret->m_jsobj = tmp;
+            if (ret->m_pMenuItemSelector)
+            {
+                ret->m_pMenuItemSelector->setJsCallBack(pThisObj, pCallBackObj, tmp);
+            }
+
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = kPointerTemporary;
+            pt->flags = 0;//FIXME: ? kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
-        } while(0);
-        
+        } while (0);
+
         return JS_TRUE;
     }
-    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
-    return JS_TRUE;
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_FALSE;
 }
 
 JSBool S_CCMenuItemLabel::jsinitWithLabel(JSContext *cx, uint32_t argc, jsval *vp) {
@@ -807,3 +873,4 @@ JSBool S_CCMenuItemToggle::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
     JS_SET_RVAL(cx, vp, JSVAL_TRUE);
     return JS_TRUE;
 }
+

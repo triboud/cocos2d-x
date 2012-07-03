@@ -577,7 +577,6 @@ public:
     static JSBool jsgetFontSize(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jsgetFontName(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jssetFontName(JSContext *cx, uint32_t argc, jsval *vp);
-    static JSBool jssetEnabled(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jsinitWithString(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jssetFontSizeObj(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jsgetFontSizeObj(JSContext *cx, uint32_t argc, jsval *vp);
@@ -3743,11 +3742,13 @@ public:
 class S_CCMenuItemLabel : public cocos2d::CCMenuItemLabel
 {
 	JSObject *m_jsobj;
+    MenuItemSelector* m_pMenuItemSelector;
 public:
 	static JSClass *jsClass;
 	static JSObject *jsObject;
 
-	S_CCMenuItemLabel(JSObject *obj) : CCMenuItemLabel(), m_jsobj(obj) {};
+	S_CCMenuItemLabel(JSObject *obj) : CCMenuItemLabel(), m_jsobj(obj),m_pMenuItemSelector(NULL) {};
+    virtual ~S_CCMenuItemLabel() {CC_SAFE_DELETE(m_pMenuItemSelector);}
 	enum {
 		kDisabledColor = 1,
 		kLabel,
@@ -3763,13 +3764,12 @@ public:
 	static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
 	static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
-	static JSBool jsitemWithLabel(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinitWithLabel(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsactivate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsselected(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsunselected(JSContext *cx, uint32_t argc, jsval *vp);
-	void menuAction(cocos2d::CCObject *o);
-
+    void menuAction(cocos2d::CCObject *o);
 };
 
 class S_CCTransitionJumpZoom : public cocos2d::CCTransitionJumpZoom

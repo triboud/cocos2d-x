@@ -80,11 +80,22 @@ scenes['test_move'] = function () {
     cc.MenuItemFont.setFontName("Arial");
     cc.MenuItemFont.setFontSize(18);
     var title2 = cc.MenuItemFont.create("Mode");
-    title2.setEnabled(false);
+    title2.isEnabled = false;
     title2.position = cc.Point.create(0, 50);
 
     item1.position = cc.Point.create(240, 160);
-    var toggleMenu = cc.Menu.create(item1, title2);
+
+	var label = cc.LabelTTF.create("Go back", "Arial", 14);
+    var back = cc.MenuItemLabel.create(label, this, 
+    	function (sender)
+    	{
+    		cc.log("menuItemLabel click...");
+    	}
+    	);
+    back.position = cc.Point.create(0,20);
+    
+
+    var toggleMenu = cc.Menu.create(item1, title2, back);
     scene.addChild(toggleMenu);
 
     return scene;

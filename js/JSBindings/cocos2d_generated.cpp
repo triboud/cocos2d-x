@@ -24633,7 +24633,7 @@ void S_CCMenuItemLabel::jsCreateClass(JSContext *cx, JSObject *globalObj, const 
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("itemWithLabel", S_CCMenuItemLabel::jsitemWithLabel, 3, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCMenuItemLabel::jscreate, 3, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -28842,7 +28842,6 @@ void S_CCMenuItemFont::jsCreateClass(JSContext *cx, JSObject *globalObj, const c
         JS_FN("getFontSizeObj", S_CCMenuItemFont::jsgetFontSizeObj, 0, JSPROP_PERMANENT | JSPROP_SHARED),
         JS_FN("setFontNameObj", S_CCMenuItemFont::jssetFontNameObj, 1, JSPROP_PERMANENT | JSPROP_SHARED),
         JS_FN("getFontNameObj", S_CCMenuItemFont::jsgetFontNameObj, 0, JSPROP_PERMANENT | JSPROP_SHARED),
-        JS_FN("setEnabled"    , S_CCMenuItemFont::jssetEnabled    , 1, JSPROP_PERMANENT | JSPROP_SHARED),
         JS_FS_END
     };
     
@@ -28855,7 +28854,7 @@ void S_CCMenuItemFont::jsCreateClass(JSContext *cx, JSObject *globalObj, const c
         JS_FS_END
     };
     
-	jsObject = JS_InitClass(cx,globalObj,S_CCMenuItem::jsObject,jsClass,S_CCMenuItemFont::jsConstructor,0,NULL,funcs,NULL,st_funcs);
+	jsObject = JS_InitClass(cx,globalObj,S_CCMenuItemLabel::jsObject,jsClass,S_CCMenuItemFont::jsConstructor,0,NULL,funcs,NULL,st_funcs);
 }
 
 JSBool S_CCMenuItemFont::jssetFontSize(JSContext *cx, uint32_t argc, jsval *vp)
@@ -28954,21 +28953,6 @@ JSBool S_CCMenuItemFont::jssetFontNameObj(JSContext *cx, uint32_t argc, jsval *v
         JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
         S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
         cobj->setFontNameObj(JS_EncodeString(cx, arg0));
-    }
-    JS_SET_RVAL(cx, vp, JSVAL_VOID);
-    return JS_TRUE;
-}
-
-JSBool S_CCMenuItemFont::jssetEnabled(JSContext *cx, uint32_t argc, jsval *vp)
-{
-    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
-    S_CCMenuItemFont* self = NULL; JSGET_PTRSHELL(S_CCMenuItemFont, self, obj);
-    if (argc == 1) {
-        JSBool arg0 = JS_FALSE;
-        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "b", &arg0);
-        self->setEnabled(arg0);
-        JS_SET_RVAL(cx, vp, JSVAL_VOID);
-        return JS_TRUE;
     }
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return JS_TRUE;
