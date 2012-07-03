@@ -395,6 +395,7 @@ public:
 
     /** initializes a menu item from a list of items with a target selector */
     bool initWithTarget(CCObject* target, SEL_MenuHandler selector, CCMenuItem* item, va_list args);
+    bool initWithTarget(CCObject* target, SEL_MenuHandler selector, CCArray* pArrayOfItems);
     
     // The follow methods offered to lua
     /** creates a menu item with a item 

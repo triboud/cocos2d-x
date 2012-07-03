@@ -2676,10 +2676,14 @@ JSBool S_CCMenu::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
         {
             JSObject* arg0 = NULL;
             JS_ValueToObject( cx, *argvp++, &arg0);
-            CCMenuItem* narg0; JSGET_PTRSHELL(CCMenuItem, narg0, arg0);
-            if (narg0 != NULL)
+            CCObject* narg0; JSGET_PTRSHELL(CCObject, narg0, arg0);
+            if (dynamic_cast<CCMenuItem*>(narg0) != NULL)
             {
                 pMenuItemArray->addObject(narg0);
+            }
+            else
+            {
+                CCAssert(0, "must add CCMenuItem to CCMenu");
             }
         }
         
@@ -28838,6 +28842,7 @@ void S_CCMenuItemFont::jsCreateClass(JSContext *cx, JSObject *globalObj, const c
         JS_FN("getFontSizeObj", S_CCMenuItemFont::jsgetFontSizeObj, 0, JSPROP_PERMANENT | JSPROP_SHARED),
         JS_FN("setFontNameObj", S_CCMenuItemFont::jssetFontNameObj, 1, JSPROP_PERMANENT | JSPROP_SHARED),
         JS_FN("getFontNameObj", S_CCMenuItemFont::jsgetFontNameObj, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("setEnabled"    , S_CCMenuItemFont::jssetEnabled    , 1, JSPROP_PERMANENT | JSPROP_SHARED),
         JS_FS_END
     };
     
@@ -28890,7 +28895,7 @@ JSBool S_CCMenuItemFont::jsgetFontName(JSContext *cx, uint32_t argc, jsval *vp)
 
 JSBool S_CCMenuItemFont::jssetFontName(JSContext *cx, uint32_t argc, jsval *vp)
 {
-    if (argc == 0) {
+    if (argc == 1) {
         JSString *arg0;
         JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
         CCMenuItemFont::setFontName(JS_EncodeString(cx, arg0));
@@ -28954,6 +28959,21 @@ JSBool S_CCMenuItemFont::jssetFontNameObj(JSContext *cx, uint32_t argc, jsval *v
     return JS_TRUE;
 }
 
+JSBool S_CCMenuItemFont::jssetEnabled(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCMenuItemFont* self = NULL; JSGET_PTRSHELL(S_CCMenuItemFont, self, obj);
+    if (argc == 1) {
+        JSBool arg0 = JS_FALSE;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "b", &arg0);
+        self->setEnabled(arg0);
+        JS_SET_RVAL(cx, vp, JSVAL_VOID);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
 JSBool S_CCMenuItemFont::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
     if (argc == 1 || argc == 3) {
         JSString *arg0 = NULL;
@@ -29000,7 +29020,7 @@ JSBool S_CCMenuItemFont::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             return JS_TRUE;
         }
         do {
-            JSObject *tmp = JS_NewObject(cx, S_CCMenuItemSprite::jsClass, S_CCMenuItemSprite::jsObject, NULL);
+            JSObject *tmp = JS_NewObject(cx, S_CCMenuItemFont::jsClass, S_CCMenuItemFont::jsObject, NULL);
             ret->setJSObject(tmp);
             if (ret->m_pMenuItemSelector)
             {

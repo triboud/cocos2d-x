@@ -66,7 +66,28 @@ scenes['test_move'] = function () {
 	var menu = createMenu("Test Move");
 	scene.addChild(menu, 1);
 
-	return scene;
+// test menuToggle
+    cc.MenuItemFont.setFontName("Arial");
+    cc.MenuItemFont.setFontSize(26);
+    var item1 = cc.MenuItemToggle.create(
+		    	this, 
+		    	function (sender){
+			        cc.log("toggle click....");
+		    	},
+		        cc.MenuItemFont.create("On"),
+		        cc.MenuItemFont.create("Off")
+        );
+    cc.MenuItemFont.setFontName("Arial");
+    cc.MenuItemFont.setFontSize(18);
+    var title2 = cc.MenuItemFont.create("Mode");
+    title2.setEnabled(false);
+    title2.position = cc.Point.create(0, 50);
+
+    item1.position = cc.Point.create(240, 160);
+    var toggleMenu = cc.Menu.create(item1, title2);
+    scene.addChild(toggleMenu);
+
+    return scene;
 };
 
 scenes['test_rotate'] = function () {

@@ -577,6 +577,7 @@ public:
     static JSBool jsgetFontSize(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jsgetFontName(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jssetFontName(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetEnabled(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jsinitWithString(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jssetFontSizeObj(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jsgetFontSizeObj(JSContext *cx, uint32_t argc, jsval *vp);
@@ -4398,6 +4399,22 @@ public:
     static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
 };
 
+class S_CCMenuItemToggle : public cocos2d::CCMenuItemToggle
+{
+    JSObject *m_jsobj;
+    MenuItemSelector* m_pMenuItemSelector;
+public:
+    static JSClass *jsClass;
+    static JSObject *jsObject;
+
+    S_CCMenuItemToggle(JSObject *obj) : CCMenuItemToggle(), m_jsobj(obj), m_pMenuItemSelector(NULL){}
+    virtual ~S_CCMenuItemToggle() { CC_SAFE_DELETE(m_pMenuItemSelector); }
+
+    static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
+    static void jsFinalize(JSContext *cx, JSObject *obj);
+    static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
+    static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
+};
 
 void register_enums_cocos2d_generated(JSObject *global);
 

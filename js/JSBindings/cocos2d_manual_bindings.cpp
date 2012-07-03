@@ -223,7 +223,7 @@ JSBool S_CCCallFunc::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             }
 
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = kPointerTemporary;
+            pt->flags = 0;//kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -689,4 +689,121 @@ void S_CCColor3B::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *
     };
 
     jsObject = JS_InitClass(cx,globalObj,NULL,jsClass,S_CCColor3B::jsConstructor,0,properties,funcs,NULL,st_funcs);
+}
+
+JSClass* S_CCMenuItemToggle::jsClass = NULL;
+JSObject* S_CCMenuItemToggle::jsObject = NULL;
+
+JSBool S_CCMenuItemToggle::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject *obj = JS_NewObject(cx, S_CCMenuItemToggle::jsClass, S_CCMenuItemToggle::jsObject, NULL);
+    S_CCMenuItemToggle *cobj = new S_CCMenuItemToggle(obj);
+    pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+    pt->flags = 0; pt->data = cobj;
+    JS_SetPrivate(obj, pt);
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+    return JS_TRUE;
+}
+
+void S_CCMenuItemToggle::jsFinalize(JSContext *cx, JSObject *obj)
+{
+    pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(obj);
+    if (pt) {
+        if (!(pt->flags & kPointerTemporary) && pt->data) ((S_CCMenuItemToggle *)pt->data)->release();
+        JS_free(cx, pt);
+    }
+}
+
+void S_CCMenuItemToggle::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name)
+{
+    jsClass = (JSClass *)calloc(1, sizeof(JSClass));
+    jsClass->name = name;
+    jsClass->addProperty = JS_PropertyStub;
+    jsClass->delProperty = JS_PropertyStub;
+    jsClass->getProperty = JS_PropertyStub;
+    jsClass->setProperty = JS_StrictPropertyStub;
+    jsClass->enumerate = JS_EnumerateStub;
+    jsClass->resolve = JS_ResolveStub;
+    jsClass->convert = JS_ConvertStub;
+    jsClass->finalize = jsFinalize;
+    jsClass->flags = JSCLASS_HAS_PRIVATE;
+    static JSPropertySpec properties[] = {
+        {0, 0, 0, 0, 0}
+    };
+
+    static JSFunctionSpec funcs[] = {
+        JS_FS_END
+    };
+
+    static JSFunctionSpec st_funcs[] = {
+        JS_FN("create", S_CCMenuItemToggle::jscreate, 2, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FS_END
+    };
+
+    jsObject = JS_InitClass(cx,globalObj, NULL,jsClass,S_CCMenuItemToggle::jsConstructor,0,properties,funcs,NULL,st_funcs);
+}
+
+JSBool S_CCMenuItemToggle::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
+    if (argc >= 2) {
+        jsval* argvp = JS_ARGV(cx, vp);
+        JSObject *arg0 = NULL;
+        JSObject *arg1 = NULL;
+
+        JS_ValueToObject( cx, *argvp++, &arg0);
+        JS_ValueToObject( cx, *argvp++, &arg1);
+
+        CCArray* pMenuItemArray = new CCArray(argc-2);
+        
+        for (uint32_t i = 0; i < argc-2; ++i)
+        {
+            JSObject* arg0 = NULL;
+            JS_ValueToObject( cx, *argvp++, &arg0);
+            CCObject* narg0; JSGET_PTRSHELL(CCObject, narg0, arg0);
+            if (dynamic_cast<CCMenuItem*>(narg0) != NULL)
+            {
+                pMenuItemArray->addObject(narg0);
+            }
+            else
+            {
+                CCAssert(0, "must add CCMenuItem to CCMenuItemToggle");
+            }
+        }
+
+
+        S_CCMenuItemToggle* ret = new S_CCMenuItemToggle(NULL);
+        if (ret)
+        {
+            ret->m_pMenuItemSelector = new MenuItemSelector();
+            if (!ret->initWithTarget(ret->m_pMenuItemSelector, menu_selector(MenuItemSelector::menuCallBack), pMenuItemArray))
+            {
+                CC_SAFE_DELETE(ret->m_pMenuItemSelector);
+                CC_SAFE_DELETE(ret);
+            }
+        }
+
+        pMenuItemArray->release();
+
+        if (ret == NULL) {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+        do {
+            JSObject *tmp = JS_NewObject(cx, S_CCMenuItemToggle::jsClass, S_CCMenuItemToggle::jsObject, NULL);
+            ret->m_jsobj = tmp;
+            if (ret->m_pMenuItemSelector)
+            {
+                ret->m_pMenuItemSelector->setJsCallBack(arg0, arg1, tmp);
+            }
+
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = 0;//kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    return JS_TRUE;
 }
