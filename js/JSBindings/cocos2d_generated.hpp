@@ -553,6 +553,37 @@ public:
 
 };
 
+class S_CCMenuItemFont : public cocos2d::CCMenuItemFont
+{
+	JSObject *m_jsobj;
+    MenuItemSelector* m_pMenuItemTarget;
+public:
+	static JSClass *jsClass;
+	static JSObject *jsObject;
+    
+    void setJSObject(JSObject *obj)
+    {
+        this->m_jsobj = obj;
+    }
+    
+	S_CCMenuItemFont(JSObject *obj) : CCMenuItemFont(), m_jsobj(obj), m_pMenuItemTarget(NULL){}
+    virtual ~S_CCMenuItemFont() { CC_SAFE_DELETE(m_pMenuItemTarget); }
+    
+	static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
+	static void jsFinalize(JSContext *cx, JSObject *obj);
+	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetFontSize(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetFontSize(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetFontName(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetFontName(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsinitWithString(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetFontSizeObj(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetFontSizeObj(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetFontNameObj(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetFontNameObj(JSContext *cx, uint32_t argc, jsval *vp);
+};
+
 class S_CCProgressTo : public cocos2d::CCProgressTo
 {
 	JSObject *m_jsobj;

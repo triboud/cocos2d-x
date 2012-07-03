@@ -28735,3 +28735,232 @@ void S_CCCallFunc::jsCreateClass(JSContext *cx, JSObject *globalObj, const char 
 void register_enums_cocos2d_generated(JSObject *global) {
 	JSContext *cx = ScriptingCore::getInstance().getGlobalContext();
 }
+
+JSClass* S_CCMenuItemFont::jsClass = NULL;
+JSObject* S_CCMenuItemFont::jsObject = NULL;
+
+JSBool S_CCMenuItemFont::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject *obj = JS_NewObject(cx, S_CCMenuItemFont::jsClass, S_CCMenuItemFont::jsObject, NULL);
+    S_CCMenuItemFont *cobj = new S_CCMenuItemFont(obj);
+    pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+    pt->flags = 0; pt->data = cobj;
+    JS_SetPrivate(obj, pt);
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+    return JS_TRUE;
+}
+
+void S_CCMenuItemFont::jsFinalize(JSContext *cx, JSObject *obj)
+{
+	pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(obj);
+	if (pt) {
+		if (!(pt->flags & kPointerTemporary) && pt->data) ((S_CCMenuItemFont *)pt->data)->release();
+		JS_free(cx, pt);
+	}
+}
+
+void S_CCMenuItemFont::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name)
+{
+	jsClass = (JSClass *)calloc(1, sizeof(JSClass));
+	jsClass->name = name;
+	jsClass->addProperty = JS_PropertyStub;
+	jsClass->delProperty = JS_PropertyStub;
+	jsClass->getProperty = JS_PropertyStub;
+	jsClass->setProperty = JS_StrictPropertyStub;
+	jsClass->enumerate = JS_EnumerateStub;
+	jsClass->resolve = JS_ResolveStub;
+	jsClass->convert = JS_ConvertStub;
+	jsClass->finalize = jsFinalize;
+	jsClass->flags = JSCLASS_HAS_PRIVATE;
+    
+    static JSFunctionSpec funcs[] = {
+        JS_FN("setFontSize", S_CCMenuItemFont::jssetFontSize, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("getFontSize", S_CCMenuItemFont::jsgetFontSize, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("setFontName", S_CCMenuItemFont::jssetFontName, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("getFontName", S_CCMenuItemFont::jssetFontName, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("setFontSizeObj", S_CCMenuItemFont::jssetFontSizeObj, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("getFontSizeObj", S_CCMenuItemFont::jsgetFontSizeObj, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("setFontNameObj", S_CCMenuItemFont::jssetFontNameObj, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("getFontNameObj", S_CCMenuItemFont::jssetFontNameObj, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FS_END
+    };
+    
+    static JSFunctionSpec st_funcs[] = {
+        JS_FN("create", S_CCMenuItemFont::jscreate, 3, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FS_END
+    };
+    
+	jsObject = JS_InitClass(cx,globalObj,S_CCMenuItem::jsObject,jsClass,S_CCMenuItemFont::jsConstructor,0,NULL,funcs,NULL,st_funcs);
+}
+
+JSBool S_CCMenuItemFont::jssetFontSize(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 1) {
+        unsigned int *arg0 = NULL;        
+        
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "u", &arg0);
+        JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+        S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
+        cobj->setFontSize(*arg0);
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemFont::jsgetFontSize(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 0) {
+        JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+        S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
+        unsigned int size = cobj->fontSize();
+        JS_SET_RVAL(cx, vp, UINT_TO_JSVAL(size));
+        
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_ZERO);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemFont::jsgetFontName(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 0) {
+        JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+        S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
+        const char *fontName = cobj->fontName();
+        JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(JS_InternString(cx, fontName)));
+        
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemFont::jssetFontName(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 0) {
+        JSString *arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
+        JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+        S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
+        cobj->setFontName(JS_EncodeString(cx, arg0));
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemFont::jssetFontSizeObj(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 1) {
+        unsigned int *arg0 = NULL;        
+        
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "u", &arg0);
+        JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+        S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
+        cobj->setFontSizeObj(*arg0);
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemFont::jsgetFontSizeObj(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 0) {
+        JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+        S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
+        unsigned int size = cobj->fontSizeObj();
+        JS_SET_RVAL(cx, vp, UINT_TO_JSVAL(size));
+        
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_ZERO);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemFont::jsgetFontNameObj(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 0) {
+        JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+        S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
+        const char *fontName = cobj->fontNameObj();
+        JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(JS_InternString(cx, fontName)));
+        
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemFont::jssetFontNameObj(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    if (argc == 0) {
+        JSString *arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
+        JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+        S_CCMenuItemFont *cobj; JSGET_PTRSHELL(S_CCMenuItemFont, cobj, obj);
+        cobj->setFontNameObj(JS_EncodeString(cx, arg0));
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCMenuItemFont::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
+    if (argc == 1 || argc == 3) {
+        JSString *arg0 = NULL;
+        JSObject *arg1 = NULL;
+        JSObject *arg2 = NULL;
+        
+        JSObject* pThisObj = NULL;
+        JSObject* pCallBackObj = NULL;
+        
+        if (argc == 1)
+        {
+            JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
+        }
+        else if (argc == 3)
+        {
+            JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "Soo", &arg0, &arg1, &arg2);
+            pThisObj = arg1;
+            pCallBackObj = arg2;
+        }
+        
+        S_CCMenuItemFont* ret = NULL;
+        MenuItemSelector* pMenuItemSelector = NULL;
+        if (pThisObj && pCallBackObj)
+        {
+            pMenuItemSelector = new MenuItemSelector();
+            
+            ret = new S_CCMenuItemFont(NULL);
+            ret->initWithString(JS_EncodeString(cx, arg0), pMenuItemSelector, menu_selector(MenuItemSelector::menuCallBack));
+        }
+        else
+        {
+            ret = new S_CCMenuItemFont(NULL);
+            ret->initWithString(JS_EncodeString(cx, arg0), NULL, NULL);
+        }
+        
+        if (ret == NULL) {
+            CC_SAFE_DELETE(pMenuItemSelector);
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+        do {
+            JSObject *tmp = JS_NewObject(cx, S_CCMenuItemSprite::jsClass, S_CCMenuItemSprite::jsObject, NULL);
+            ret->setJSObject(tmp);
+            if (pMenuItemSelector)
+            {
+                pMenuItemSelector->setJsCallBack(pThisObj, pCallBackObj);
+            }
+            
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+        
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_FALSE;
+}
+
