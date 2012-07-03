@@ -132,10 +132,12 @@ public:
     /** align items in rows of columns */
     void alignItemsInColumns(unsigned int columns, ...);
     void alignItemsInColumns(unsigned int columns, va_list args);
+    void alignItemsInColumns(CCArray* pArrayOfColumns);
 
     /** align items in columns of rows */
     void alignItemsInRows(unsigned int rows, ...);
     void alignItemsInRows(unsigned int rows, va_list args);
+    void alignItemsInRows(CCArray* pArrayOfRows);
 
     /** set event handler priority. By default it is: kCCMenuTouchPriority */
     void setHandlerPriority(int newPriority);

@@ -444,8 +444,7 @@ public:
 	static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
 	static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
-	static JSBool jsmenuWithItems(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsmenuWithItem(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinit(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsalignItemsVertically(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsalignItemsVerticallyWithPadding(JSContext *cx, uint32_t argc, jsval *vp);
@@ -3192,7 +3191,7 @@ public:
 	static JSBool jsinitWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsstartWithTarget(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsreverse(JSContext *cx, uint32_t argc, jsval *vp);
-	static JSBool jsactionWithDuration(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 

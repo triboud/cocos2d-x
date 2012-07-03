@@ -251,8 +251,7 @@ var playCurrentScene = function () {
 
 // creates the hud
 var createMenu = function (labelText) {
-	var hudMenu = new cc.Menu();
-	hudMenu.init();
+//	var hudMenu = cc.Menu.create();
 
 	var b1 = new cc.Sprite(); b1.initWithFile("b1.png");
 	var b2 = new cc.Sprite(); b2.initWithFile("b2.png");
@@ -295,10 +294,12 @@ var createMenu = function (labelText) {
 	item3.position = cc.Point.create(winSize.width / 2 + 100, 30);
 	item4.position = cc.Point.create(30, winSize.height - 30);
 
-	hudMenu.addChild(item1);
-	hudMenu.addChild(item2);
-	hudMenu.addChild(item3);
-	hudMenu.addChild(item4);
+	var hudMenu = cc.Menu.create(item1, item2, item3, item4);
+//	hudMenu.addChild(item1);
+//	hudMenu.addChild(item2);
+//	hudMenu.addChild(item3);
+//	hudMenu.addChild(item4);
+
 	hudMenu.position = pointZero;
 
 	if (labelText) {
@@ -309,6 +310,8 @@ var createMenu = function (labelText) {
 		hudMenu.addChild(menuLabel);
 	}
 
+	cc.MenuItemFont.setFontSize(12);
+	cc.log("menu font name:" + cc.MenuItemFont.getFontName() + " size = "+cc.MenuItemFont.getFontSize());
 	var menuItemFont = cc.MenuItemFont.create("Hi, I am CCMenuItemFont!", this, 
 			function (sender)
 			{

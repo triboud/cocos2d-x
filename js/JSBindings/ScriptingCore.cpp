@@ -206,7 +206,7 @@ ScriptingCore::ScriptingCore()
     S_CCTMXTiledMap::jsCreateClass(this->cx, cocos, "TMXTiledMap");
     S_CCTMXLayer::jsCreateClass(this->cx, cocos, "TMXLayer");
     S_CCCallFunc::jsCreateClass(this->cx, cocos, "CallFunc");
-    S_SimpleAudioEngine::jsCreateClass(this->cx, cocos, "SimpleAudioEngine");
+    S_SimpleAudioEngine::jsCreateClass(this->cx, cocos, "AudioManager");
 
     // register some global functions
     JS_DefineFunction(this->cx, global, "require", ScriptingCore::executeScript, 0, JSPROP_READONLY | JSPROP_PERMANENT);

@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "touch_dispatcher/CCTouchDispatcher.h"
 #include "touch_dispatcher/CCTouch.h"
 #include "CCStdC.h"
-
+#include "cocoa/CCInteger.h"
 #include <vector>
 #include <stdarg.h>
 
@@ -377,15 +377,8 @@ void CCMenu::alignItemsInColumns(unsigned int columns, ...)
     va_end(args);
 }
 
-void CCMenu::alignItemsInColumns(unsigned int columns, va_list args)
+void CCMenu::alignItemsInColumns(CCArray* pArrayOfColumns)
 {
-    vector<unsigned int> rows;
-    while (columns)
-    {
-        rows.push_back(columns);
-        columns = va_arg(args, unsigned int);
-    }
-
     int height = -5;
     unsigned int row = 0;
     unsigned int rowHeight = 0;
@@ -400,9 +393,9 @@ void CCMenu::alignItemsInColumns(unsigned int columns, va_list args)
             CCNode* pChild = dynamic_cast<CCNode*>(pObject);
             if (pChild)
             {
-                CCAssert(row < rows.size(), "");
+                CCAssert(row < pArrayOfColumns->count(), "");
 
-                rowColumns = rows[row];
+                rowColumns = (unsigned int)((CCInteger*)pArrayOfColumns->objectAtIndex(row))->getValue();
                 // can not have zero columns on a row
                 CCAssert(rowColumns, "");
 
@@ -444,7 +437,7 @@ void CCMenu::alignItemsInColumns(unsigned int columns, va_list args)
             {
                 if (rowColumns == 0)
                 {
-                    rowColumns = rows[row];
+                    rowColumns = (unsigned int)((CCInteger*)pArrayOfColumns->objectAtIndex(row))->getValue();
                     w = winSize.width / (1 + rowColumns);
                     x = w;
                 }
@@ -453,7 +446,7 @@ void CCMenu::alignItemsInColumns(unsigned int columns, va_list args)
                 rowHeight = (unsigned int)((rowHeight >= tmp || isnan(tmp)) ? rowHeight : tmp);
 
                 pChild->setPosition(ccp(x - winSize.width / 2,
-                                       y - pChild->getContentSize().height / 2));
+                    y - pChild->getContentSize().height / 2));
 
                 x += w;
                 ++columnsOccupied;
@@ -472,6 +465,18 @@ void CCMenu::alignItemsInColumns(unsigned int columns, va_list args)
     }    
 }
 
+void CCMenu::alignItemsInColumns(unsigned int columns, va_list args)
+{
+    CCArray* rows = new CCArray();
+    while (columns)
+    {
+        rows->addObject(CCInteger::create(columns));
+        columns = va_arg(args, unsigned int);
+    }
+    this->alignItemsInColumns(rows);
+    rows->release();
+}
+
 void CCMenu::alignItemsInRows(unsigned int rows, ...)
 {
     va_list args;
@@ -482,15 +487,8 @@ void CCMenu::alignItemsInRows(unsigned int rows, ...)
     va_end(args);
 }
 
-void CCMenu::alignItemsInRows(unsigned int rows, va_list args)
+void CCMenu::alignItemsInRows(CCArray* pArrayOfColumns)
 {
-    vector<unsigned int> columns;
-    while (rows)
-    {
-        columns.push_back(rows);
-        rows = va_arg(args, unsigned int);
-    }
-
     vector<unsigned int> columnWidths;
     vector<unsigned int> columnHeights;
 
@@ -510,9 +508,9 @@ void CCMenu::alignItemsInRows(unsigned int rows, va_list args)
             if (pChild)
             {
                 // check if too many menu items for the amount of rows/columns
-                CCAssert(column < columns.size(), "");
+                CCAssert(column < pArrayOfColumns->count(), "");
 
-                columnRows = columns[column];
+                columnRows = (unsigned int)((CCInteger*)pArrayOfColumns->objectAtIndex(column))->getValue();
                 // can't have zero rows on a column
                 CCAssert(columnRows, "");
 
@@ -559,7 +557,7 @@ void CCMenu::alignItemsInRows(unsigned int rows, va_list args)
             {
                 if (columnRows == 0)
                 {
-                    columnRows = columns[column];
+                    columnRows = (unsigned int)((CCInteger*)pArrayOfColumns->objectAtIndex(column))->getValue();
                     y = (float) columnHeights[column];
                 }
 
@@ -568,7 +566,7 @@ void CCMenu::alignItemsInRows(unsigned int rows, va_list args)
                 columnWidth = (unsigned int)((columnWidth >= tmp || isnan(tmp)) ? columnWidth : tmp);
 
                 pChild->setPosition(ccp(x + columnWidths[column] / 2,
-                                       y - winSize.height / 2));
+                    y - winSize.height / 2));
 
                 y -= pChild->getContentSize().height + 10;
                 ++rowsOccupied;
@@ -609,6 +607,20 @@ void CCMenu::setOpacity(GLubyte var)
             }
         }
     }
+}
+
+void CCMenu::alignItemsInRows(unsigned int rows, va_list args)
+{
+    CCArray* columns = new CCArray();
+    while (rows)
+    {
+        columns->addObject(CCInteger::create(rows));
+        rows = va_arg(args, unsigned int);
+    }
+    
+    this->alignItemsInRows(columns);
+
+    columns->release();
 }
 
 GLubyte CCMenu::getOpacity(void)
