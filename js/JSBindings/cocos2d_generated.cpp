@@ -28923,36 +28923,41 @@ JSBool S_CCMenuItemFont::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             pCallBackObj = arg2;
         }
         
-        S_CCMenuItemFont* ret = NULL;
-        MenuItemSelector* pMenuItemSelector = NULL;
-        if (pThisObj && pCallBackObj)
+        S_CCMenuItemFont* ret = new S_CCMenuItemFont(NULL);
+        if (ret)
         {
-            pMenuItemSelector = new MenuItemSelector();
-            
-            ret = new S_CCMenuItemFont(NULL);
-            ret->initWithString(JS_EncodeString(cx, arg0), pMenuItemSelector, menu_selector(MenuItemSelector::menuCallBack));
-        }
-        else
-        {
-            ret = new S_CCMenuItemFont(NULL);
-            ret->initWithString(JS_EncodeString(cx, arg0), NULL, NULL);
+            if (pThisObj && pCallBackObj)
+            {
+                ret->m_pMenuItemSelector = new MenuItemSelector();
+                if (!ret->initWithString(JS_EncodeString(cx, arg0), ret->m_pMenuItemSelector, menu_selector(MenuItemSelector::menuCallBack)))
+                {
+                    CC_SAFE_DELETE(ret->m_pMenuItemSelector);
+                    CC_SAFE_DELETE(ret);
+                }
+            }
+            else
+            {
+                if (!ret->initWithString(JS_EncodeString(cx, arg0), NULL, NULL))
+                {
+                    CC_SAFE_DELETE(ret);
+                }
+            }
         }
         
         if (ret == NULL) {
-            CC_SAFE_DELETE(pMenuItemSelector);
             JS_SET_RVAL(cx, vp, JSVAL_NULL);
             return JS_TRUE;
         }
         do {
             JSObject *tmp = JS_NewObject(cx, S_CCMenuItemSprite::jsClass, S_CCMenuItemSprite::jsObject, NULL);
             ret->setJSObject(tmp);
-            if (pMenuItemSelector)
+            if (ret->m_pMenuItemSelector)
             {
-                pMenuItemSelector->setJsCallBack(pThisObj, pCallBackObj);
+                ret->m_pMenuItemSelector->setJsCallBack(pThisObj, pCallBackObj, tmp);
             }
             
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = kPointerTemporary;
+            pt->flags = 0;//FIXME: ? kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));

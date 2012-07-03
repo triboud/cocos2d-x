@@ -556,7 +556,7 @@ public:
 class S_CCMenuItemFont : public cocos2d::CCMenuItemFont
 {
 	JSObject *m_jsobj;
-    MenuItemSelector* m_pMenuItemTarget;
+    MenuItemSelector* m_pMenuItemSelector;
 public:
 	static JSClass *jsClass;
 	static JSObject *jsObject;
@@ -566,8 +566,8 @@ public:
         this->m_jsobj = obj;
     }
     
-	S_CCMenuItemFont(JSObject *obj) : CCMenuItemFont(), m_jsobj(obj), m_pMenuItemTarget(NULL){}
-    virtual ~S_CCMenuItemFont() { CC_SAFE_DELETE(m_pMenuItemTarget); }
+	S_CCMenuItemFont(JSObject *obj) : CCMenuItemFont(), m_jsobj(obj), m_pMenuItemSelector(NULL){}
+    virtual ~S_CCMenuItemFont() { CC_SAFE_DELETE(m_pMenuItemSelector); }
     
 	static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
 	static void jsFinalize(JSContext *cx, JSObject *obj);

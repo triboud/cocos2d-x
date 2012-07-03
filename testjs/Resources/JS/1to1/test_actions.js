@@ -301,6 +301,15 @@ var createMenu = function (labelText) {
 		hudMenu.addChild(menuLabel);
 	}
 
+	var menuItemFont = cc.MenuItemFont.create("Hi, I am CCMenuItemFont!", this, 
+			function (sender)
+			{
+				cc.log("hello, CCMenuItemFont.");
+			}
+		);
+
+	menuItemFont.position = cc.Point.create(winSize.width / 2, 100);
+	hudMenu.addChild(menuItemFont);
 	// just to avoid GC
 	hudMenu.items = [item1, item2, item3];
 	return hudMenu;

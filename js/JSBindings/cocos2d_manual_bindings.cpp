@@ -174,7 +174,7 @@ JSBool S_CCMenuItemSprite::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             }
             
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = kPointerTemporary;
+            pt->flags = 0;//FIXME: ? kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
