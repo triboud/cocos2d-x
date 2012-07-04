@@ -41,6 +41,7 @@ ScriptingCore::ScriptingCore()
     // register the internal classes
     S_CCPoint::jsCreateClass(this->cx, cocos, "Point");
     S_CCSize::jsCreateClass(this->cx, cocos, "Size");
+    S_BlendFunc::jsCreateClass(this->cx, cocos, "BlendFunc");
     S_CCRect::jsCreateClass(this->cx, cocos, "Rect");
     S_CCColor3B::jsCreateClass(this->cx, cocos, "Color3B");
     S__ccGridSize::jsCreateClass(this->cx, cocos, "GridSize");

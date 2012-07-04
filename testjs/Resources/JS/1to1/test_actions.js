@@ -48,7 +48,9 @@ scenes.currentScene = 1;
  */
 scenes['test_move'] = function () {
 	var s1 = cc.Sprite.create("grossini_dance_05.png");
-	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
+	//s1.blendFunc = new cc.BlendFunc(1,2);
+	s1.setPosition(cc.Point.create(winSize.width / 2 + 50, winSize.height / 2));
+	cc.log("position x = "+s1.getPosition().x+" y = "+s1.getPosition().y);
 	var s2 = cc.Sprite.create("grossinis_sister1.png");
 	s2.position = cc.Point.create(winSize.width / 2 - 50, winSize.height / 2);
 
@@ -200,16 +202,17 @@ scenes['test_sequence'] = function () {
 	s1.position = cc.Point.create(winSize.width / 2 + 50, winSize.height / 2);
 
 	var rotate1 = cc.RotateBy.create(1.0, 90);
-	var moveBy = new cc.MoveBy();
-	moveBy.initWithDuration(2.0, cc.Point.create(100, 100));
-	var fadeOut = cc.FadeOut.create(2);
+	var moveBy = cc.MoveBy.create(2.0, cc.Point.create(100, 100));
+	//var fadeOut = cc.FadeOut.create(2);
 	var rotate2 = rotate1.reverse();
 	var delay = cc.DelayTime.create(1.5);
+
 
 	var callAction = cc.CallFunc.create(this, function () {
 		cc.log("call action...");
 	});
-	var seq = cc.Sequence.create(rotate1, moveBy, delay, rotate2, fadeOut, callAction);
+
+	var seq = cc.Sequence.create(rotate1, moveBy, delay, rotate2, callAction);
 	s1.runAction(seq);
 
 	var scene = cc.Scene.create();

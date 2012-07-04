@@ -530,7 +530,7 @@ public:
 	static JSObject *jsObject;
 
 	S_CCMenuItemSprite(JSObject *obj) : CCMenuItemSprite(), m_jsobj(obj), m_pMenuItemSelector(NULL) {};
-    virtual ~S_CCMenuItemSprite() { CC_SAFE_DELETE(m_pMenuItemSelector); }
+    virtual ~S_CCMenuItemSprite() { CC_SAFE_RELEASE(m_pMenuItemSelector); }
 	enum {
 		kNormalImage = 1,
 		kSelectedImage,
@@ -567,7 +567,7 @@ public:
     }
     
 	S_CCMenuItemFont(JSObject *obj) : CCMenuItemFont(), m_jsobj(obj), m_pMenuItemSelector(NULL){}
-    virtual ~S_CCMenuItemFont() { CC_SAFE_DELETE(m_pMenuItemSelector); }
+    virtual ~S_CCMenuItemFont() { CC_SAFE_RELEASE(m_pMenuItemSelector); }
     
 	static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
 	static void jsFinalize(JSContext *cx, JSObject *obj);
@@ -2580,6 +2580,10 @@ public:
 	static JSBool jsconvertToWorldSpaceAR(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsconvertTouchToNodeSpace(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsconvertTouchToNodeSpaceAR(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetPosition(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetPosition(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetParent(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetParent(JSContext *cx, uint32_t argc, jsval *vp);
 	virtual void update(float delta);
 
 };
@@ -3748,7 +3752,7 @@ public:
 	static JSObject *jsObject;
 
 	S_CCMenuItemLabel(JSObject *obj) : CCMenuItemLabel(), m_jsobj(obj),m_pMenuItemSelector(NULL) {};
-    virtual ~S_CCMenuItemLabel() {CC_SAFE_DELETE(m_pMenuItemSelector);}
+    virtual ~S_CCMenuItemLabel() {CC_SAFE_RELEASE(m_pMenuItemSelector);}
 	enum {
 		kDisabledColor = 1,
 		kLabel,
@@ -4370,7 +4374,7 @@ public:
     static JSObject *jsObject;
 
     S_CCCallFunc(JSObject *obj) : CCCallFunc(), m_jsobj(obj), m_pCallFuncSelector(NULL) {};
-    virtual ~S_CCCallFunc() { CC_SAFE_DELETE(m_pCallFuncSelector); }
+    virtual ~S_CCCallFunc() { CC_SAFE_RELEASE(m_pCallFuncSelector); }
     static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
     static void jsFinalize(JSContext *cx, JSObject *obj);
     static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
@@ -4408,13 +4412,36 @@ public:
     static JSObject *jsObject;
 
     S_CCMenuItemToggle(JSObject *obj) : CCMenuItemToggle(), m_jsobj(obj), m_pMenuItemSelector(NULL){}
-    virtual ~S_CCMenuItemToggle() { CC_SAFE_DELETE(m_pMenuItemSelector); }
+    virtual ~S_CCMenuItemToggle() { CC_SAFE_RELEASE(m_pMenuItemSelector); }
 
     static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
     static void jsFinalize(JSContext *cx, JSObject *obj);
     static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
     static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 };
+
+class S_BlendFunc : public cocos2d::ccBlendFunc
+{
+    JSObject *m_jsobj;
+public:
+    static JSClass *jsClass;
+    static JSObject *jsObject;
+
+    enum {
+        kSrc = 1,
+        kDst
+    };
+
+    S_BlendFunc(JSObject *obj) : ccBlendFunc(), m_jsobj(obj){}
+    static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
+    static void jsFinalize(JSContext *cx, JSObject *obj);
+    static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
+    static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
+    static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
+};
+
+
 
 void register_enums_cocos2d_generated(JSObject *global);
 

@@ -215,7 +215,7 @@ JSBool S_CCCallFunc::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             return JS_TRUE;
         }
         do {
-            JSObject *tmp = JS_NewObject(cx, S_CCMenuItemSprite::jsClass, S_CCMenuItemSprite::jsObject, NULL);
+            JSObject *tmp = JS_NewObject(cx, S_CCCallFunc::jsClass, S_CCCallFunc::jsObject, NULL);
             ret->m_jsobj = tmp;
             if (ret->m_pCallFuncSelector)
             {
@@ -275,9 +275,9 @@ JSBool S_CCSequence::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
                 }
                 do {
                     ret->retain();
-                    JSObject *tmp = JS_NewObject(cx, S_CCFiniteTimeAction::jsClass, S_CCFiniteTimeAction::jsObject, NULL);
+                    JSObject *tmp = JS_NewObject(cx, S_CCSequence::jsClass, S_CCSequence::jsObject, NULL);
                     pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-                    pt->flags = kPointerTemporary;
+                    pt->flags = 0;//kPointerTemporary;
                     pt->data = (void *)ret;
                     JS_SetPrivate(tmp, pt);
                     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -874,3 +874,100 @@ JSBool S_CCMenuItemToggle::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
     return JS_TRUE;
 }
 
+JSClass* S_BlendFunc::jsClass = NULL;
+JSObject* S_BlendFunc::jsObject = NULL;
+
+JSBool S_BlendFunc::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject *obj = JS_NewObject(cx, S_BlendFunc::jsClass, S_BlendFunc::jsObject, NULL);
+    S_BlendFunc *cobj = new S_BlendFunc(obj);
+    if (argc == 2)
+    {
+        int src = 0;
+        int dst = 0;
+        JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "ii", &src, &dst);
+        cobj->src = src;
+        cobj->dst = dst;
+    }
+    
+    pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+    pt->flags = 0; pt->data = cobj;
+    JS_SetPrivate(obj, pt);
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+    return JS_TRUE;
+}
+
+void S_BlendFunc::jsFinalize(JSContext *cx, JSObject *obj)
+{
+    pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(obj);
+    if (pt) {
+        if (!(pt->flags & kPointerTemporary) && pt->data) delete (S_BlendFunc *)pt->data;
+        JS_free(cx, pt);
+    }
+}
+
+JSBool S_BlendFunc::jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val)
+{
+    int32_t propId = JSID_TO_INT(_id);
+    S_BlendFunc *cobj; JSGET_PTRSHELL(S_BlendFunc, cobj, obj);
+    if (!cobj) return JS_FALSE;
+    switch(propId) {
+    case kSrc:
+        do { jsval tmp; JS_NewNumberValue(cx, cobj->src, &tmp); JS_SET_RVAL(cx, val, tmp); } while (0);
+        break;
+    case kDst:
+        do { jsval tmp; JS_NewNumberValue(cx, cobj->dst, &tmp); JS_SET_RVAL(cx, val, tmp); } while (0);
+        break;
+    default:
+        break;
+    }
+    return JS_TRUE;
+}
+
+JSBool S_BlendFunc::jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val)
+{
+    int32_t propId = JSID_TO_INT(_id);
+    S_BlendFunc *cobj; JSGET_PTRSHELL(S_BlendFunc, cobj, obj);
+    if (!cobj) return JS_FALSE;
+    switch(propId) {
+    case kSrc:
+        do { double tmp; JS_ValueToNumber(cx, *val, &tmp); cobj->src = tmp; } while (0);
+        break;
+    case kDst:
+        do { double tmp; JS_ValueToNumber(cx, *val, &tmp); cobj->dst = tmp; } while (0);
+        break;
+    default:
+        break;
+    }
+    return JS_TRUE;
+}
+
+void S_BlendFunc::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name)
+{
+    jsClass = (JSClass *)calloc(1, sizeof(JSClass));
+    jsClass->name = name;
+    jsClass->addProperty = JS_PropertyStub;
+    jsClass->delProperty = JS_PropertyStub;
+    jsClass->getProperty = JS_PropertyStub;
+    jsClass->setProperty = JS_StrictPropertyStub;
+    jsClass->enumerate = JS_EnumerateStub;
+    jsClass->resolve = JS_ResolveStub;
+    jsClass->convert = JS_ConvertStub;
+    jsClass->finalize = jsFinalize;
+    jsClass->flags = JSCLASS_HAS_PRIVATE;
+    static JSPropertySpec properties[] = {
+        {"src", kSrc, JSPROP_PERMANENT | JSPROP_SHARED, S_BlendFunc::jsPropertyGet, S_BlendFunc::jsPropertySet},
+        {"dst", kDst, JSPROP_PERMANENT | JSPROP_SHARED, S_BlendFunc::jsPropertyGet, S_BlendFunc::jsPropertySet},
+        {0, 0, 0, 0, 0}
+    };
+
+    static JSFunctionSpec funcs[] = {
+        JS_FS_END
+    };
+
+    static JSFunctionSpec st_funcs[] = {
+        JS_FS_END
+    };
+
+    jsObject = JS_InitClass(cx,globalObj,NULL,jsClass,S_BlendFunc::jsConstructor,0,properties,funcs,NULL,st_funcs);
+}
