@@ -46,7 +46,27 @@ void CallFuncSelector::setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFu
     m_pCallBackFuncObj = pCallBackFuncObj;
     m_pThisJsObj = pThisJsObj;
 }
+// SchedulerSelector
+SchedulerSelector::SchedulerSelector()
+: m_pCallBackFuncObj(NULL)
+, m_pThisJsObj(NULL)
+{
+}
 
+void SchedulerSelector::schedulerCallBack(float dt)
+{
+    JSContext* cx  = ScriptingCore::getInstance().getGlobalContext();
+    CCAssert(JS_ValueToFunction(cx, OBJECT_TO_JSVAL(m_pCallBackFuncObj)), "Should be a function");
+    jsval rval;
+    jsval arg = DOUBLE_TO_JSVAL(dt);
+    JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 1, &arg, &rval);
+}
+
+void SchedulerSelector::setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj)
+{
+    m_pCallBackFuncObj = pCallBackFuncObj;
+    m_pThisJsObj = pThisJsObj;
+}
 
 JSBool S_CCNode::jsaddChild(JSContext *cx, uint32_t argc, jsval *vp) {
     JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
@@ -56,14 +76,19 @@ JSBool S_CCNode::jsaddChild(JSContext *cx, uint32_t argc, jsval *vp) {
         JSObject *arg0;
         int zorder = 0;
         int tag = 0;
-        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o/ii", &arg0, &zorder, &tag);
-        CCNode* narg0; JSGET_PTRSHELL(CCNode, narg0, arg0);
+
         // call the proper method
         if (argc == 1) {
+            JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+            CCNode* narg0; JSGET_PTRSHELL(CCNode, narg0, arg0);
             self->addChild(narg0);
         } else if (argc == 2) {
+            JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "oi", &arg0, &zorder);
+            CCNode* narg0; JSGET_PTRSHELL(CCNode, narg0, arg0);
             self->addChild(narg0, zorder);
         } else {
+            JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "oii", &arg0, &zorder, &tag);
+            CCNode* narg0; JSGET_PTRSHELL(CCNode, narg0, arg0);
             self->addChild(narg0, zorder, tag);
         }
 
@@ -478,6 +503,23 @@ JSBool S_CCLabelTTF::jsinitWithString(JSContext *cx, uint32_t argc, jsval *vp) {
     return JS_TRUE;
 }
 
+JSBool S_CCLabelTTF::jssetString(JSContext *cx, uint32_t argc, jsval *vp) {
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCLabelTTF* self = NULL; JSGET_PTRSHELL(S_CCLabelTTF, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        JSString *arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
+        char *narg0 = JS_EncodeString(cx, arg0);
+        self->setString(narg0);
+        JS_SET_RVAL(cx, vp, JSVAL_VOID);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+
 JSBool S_CCMenuItem::jsinit(JSContext *cx, uint32_t argc, jsval *vp) {
     JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
     S_CCMenuItem* self = NULL; JSGET_PTRSHELL(S_CCMenuItem, self, obj);
@@ -669,6 +711,15 @@ JSBool S_CCColor3B::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
 {
     JSObject *obj = JS_NewObject(cx, S_CCColor3B::jsClass, S_CCColor3B::jsObject, NULL);
     S_CCColor3B *cobj = new S_CCColor3B(obj);
+    if (argc == 3)
+    {
+        int r = 0, g = 0, b = 0;
+        JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "iii", &r, &g, &b);
+        cobj->r = r;
+        cobj->g = g;
+        cobj->b = b;
+    }
+    
     pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
     pt->flags = 0; pt->data = cobj;
     JS_SetPrivate(obj, pt);
@@ -970,4 +1021,118 @@ void S_BlendFunc::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *
     };
 
     jsObject = JS_InitClass(cx,globalObj,NULL,jsClass,S_BlendFunc::jsConstructor,0,properties,funcs,NULL,st_funcs);
+}
+
+// cc.Schedluer
+JSClass* S_CCScheduler::jsClass = NULL;
+JSObject* S_CCScheduler::jsObject = NULL;
+
+JSBool S_CCScheduler::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    return JS_FALSE;
+};
+
+void S_CCScheduler::jsFinalize(JSContext *cx, JSObject *obj)
+{
+    pointerShell_t *pt = (pointerShell_t *)JS_GetPrivate(obj);
+    if (pt) {
+        if (!(pt->flags & kPointerTemporary) && pt->data) ((S_CCScheduler *)pt->data)->release();
+        JS_free(cx, pt);
+    }
+}
+
+void S_CCScheduler::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name)
+{
+    jsClass = (JSClass *)calloc(1, sizeof(JSClass));
+    jsClass->name = name;
+    jsClass->addProperty = JS_PropertyStub;
+    jsClass->delProperty = JS_PropertyStub;
+    jsClass->getProperty = JS_PropertyStub;
+    jsClass->setProperty = JS_StrictPropertyStub;
+    jsClass->enumerate = JS_EnumerateStub;
+    jsClass->resolve = JS_ResolveStub;
+    jsClass->convert = JS_ConvertStub;
+    jsClass->finalize = jsFinalize;
+    jsClass->flags = JSCLASS_HAS_PRIVATE;
+    static JSPropertySpec properties[] = {
+        {0, 0, 0, 0, 0}
+    };
+
+    static JSFunctionSpec funcs[] = {
+        JS_FN("scheduleSelector", S_CCScheduler::jsscheduleSelector, 5, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FN("unscheduleAllSelectorsForTarget", S_CCScheduler::jsunscheduleAllSelectorsForTarget, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FS_END
+    };
+
+    static JSFunctionSpec st_funcs[] = {
+        JS_FN("sharedScheduler", S_CCScheduler::jssharedScheduler, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+        JS_FS_END
+    };
+
+    jsObject = JS_InitClass(cx,globalObj,NULL,jsClass,S_CCScheduler::jsConstructor,0,properties,funcs,NULL,st_funcs);
+}
+
+JSBool S_CCScheduler::jsscheduleSelector(JSContext *cx, uint32_t argc, jsval *vp) {
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCScheduler* self = NULL; JSGET_PTRSHELL(S_CCScheduler, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 4) {
+        JSObject* arg0;
+        JSObject* arg1;
+        double arg2;
+        JSBool arg3;
+        JS_ConvertArguments(cx, 4, JS_ARGV(cx, vp), "oodb", &arg0, &arg1, &arg2, &arg3);
+        SchedulerSelector* pSchedulerSelector = new SchedulerSelector();
+        pSchedulerSelector->setJsCallBack(arg1, arg0);
+        self->scheduleSelector(schedule_selector(SchedulerSelector::schedulerCallBack), pSchedulerSelector, arg2, arg3);
+        pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+        pt->flags = kPointerTemporary;
+        pt->data = (void *)pSchedulerSelector;
+        JS_SetPrivate(arg1, pt);
+        JS_SET_RVAL(cx, vp, JSVAL_VOID);
+
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCScheduler::jsunscheduleAllSelectorsForTarget(JSContext *cx, uint32_t argc, jsval *vp) {
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCScheduler* self = NULL; JSGET_PTRSHELL(S_CCScheduler, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        JSObject* arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+        CCObject* narg0 = NULL; JSGET_PTRSHELL(CCObject, narg0, arg0);
+        self->unscheduleAllSelectorsForTarget(narg0);
+        JS_SET_RVAL(cx, vp, JSVAL_VOID);
+
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+
+JSBool S_CCScheduler::jssharedScheduler(JSContext *cx, uint32_t argc, jsval *vp) {
+    if (argc == 0) {
+        CCScheduler* ret = CCDirector::sharedDirector()->getScheduler();
+        if (ret == NULL) {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+        do {
+            JSObject *tmp = JS_NewObject(cx, S_CCScheduler::jsClass, S_CCScheduler::jsObject, NULL);
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    return JS_TRUE;
 }

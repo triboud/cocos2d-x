@@ -34,6 +34,11 @@ cc.RectMake = function (x, y, w, h) {
 	return ret;
 }
 
+cc.ccp = function (x, y) {
+	var ret = cc.Point.create(x, y);
+	return ret;
+}
+
 var pointZero = cc.Point.create(0, 0);
 var sizeZero = cc.Size.create(0, 0);
 
@@ -48,8 +53,11 @@ scenes.currentScene = 1;
  */
 scenes['test_move'] = function () {
 	var s1 = cc.Sprite.create("grossini_dance_05.png");
+	cc.log("content size w = " + s1.getContentSize().width + " h="+s1.getContentSize().height);
 	//s1.blendFunc = new cc.BlendFunc(1,2);
 	s1.setPosition(cc.Point.create(winSize.width / 2 + 50, winSize.height / 2));
+	s1.setAnchorPoint(cc.ccp(1,0.5));
+	s1.setColor(new cc.Color3B(255, 0, 0));
 	cc.log("position x = "+s1.getPosition().x+" y = "+s1.getPosition().y);
 	var s2 = cc.Sprite.create("grossinis_sister1.png");
 	s2.position = cc.Point.create(winSize.width / 2 - 50, winSize.height / 2);

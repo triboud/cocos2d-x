@@ -66,15 +66,15 @@ ScriptingCore::ScriptingCore()
     S_CCSpriteFrameCache::jsCreateClass(this->cx, cocos, "SpriteFrameCache");
     S_CCAnimation::jsCreateClass(this->cx, cocos, "Animation");
     S_CCAction::jsCreateClass(this->cx, cocos, "Action");
-    S_CCActionInterval::jsCreateClass(this->cx, cocos, "ActionInterval");
     S_CCFiniteTimeAction::jsCreateClass(this->cx, cocos, "FiniteTimeAction");
+    S_CCActionInterval::jsCreateClass(this->cx, cocos, "ActionInterval");
     S_CCActionInstant::jsCreateClass(this->cx, cocos, "ActionInstant");
     S_CCDelayTime::jsCreateClass(this->cx, cocos, "DelayTime");
     S_CCAnimate::jsCreateClass(this->cx, cocos, "Animate");
     S_CCMoveTo::jsCreateClass(this->cx, cocos, "MoveTo");
     S_CCMoveBy::jsCreateClass(this->cx, cocos, "MoveBy");
-    S_CCRotateBy::jsCreateClass(this->cx, cocos, "RotateBy");
     S_CCRotateTo::jsCreateClass(this->cx, cocos, "RotateTo");
+    S_CCRotateBy::jsCreateClass(this->cx, cocos, "RotateBy");
     S_CCActionEase::jsCreateClass(this->cx, cocos, "ActionEase");
     S_CCEaseRateAction::jsCreateClass(this->cx, cocos, "EaseRateAction");
     S_CCEaseIn::jsCreateClass(this->cx, cocos, "EaseIn");
@@ -202,14 +202,14 @@ ScriptingCore::ScriptingCore()
     S_CCJumpTiles3D::jsCreateClass(this->cx, cocos, "JumpTiles3D");
     S_CCFadeIn::jsCreateClass(this->cx, cocos, "FadeIn");
     S_CCSplitRows::jsCreateClass(this->cx, cocos, "SplitRows");
-    S_CCScaleBy::jsCreateClass(this->cx, cocos, "ScaleBy");
     S_CCScaleTo::jsCreateClass(this->cx, cocos, "ScaleTo");
+    S_CCScaleBy::jsCreateClass(this->cx, cocos, "ScaleBy");
     S_CCBezierTo::jsCreateClass(this->cx, cocos, "BezierTo");
     S_CCTMXTiledMap::jsCreateClass(this->cx, cocos, "TMXTiledMap");
     S_CCTMXLayer::jsCreateClass(this->cx, cocos, "TMXLayer");
     S_CCCallFunc::jsCreateClass(this->cx, cocos, "CallFunc");
     S_SimpleAudioEngine::jsCreateClass(this->cx, cocos, "AudioManager");
-
+    S_CCScheduler::jsCreateClass(this->cx, cocos, "Scheduler");
     // register some global functions
     JS_DefineFunction(this->cx, global, "require", ScriptingCore::executeScript, 0, JSPROP_READONLY | JSPROP_PERMANENT);
     JS_DefineFunction(this->cx, cocos, "log", ScriptingCore::log, 0, JSPROP_READONLY | JSPROP_PERMANENT);

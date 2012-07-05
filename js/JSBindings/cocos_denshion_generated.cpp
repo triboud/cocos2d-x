@@ -90,6 +90,7 @@ void S_SimpleAudioEngine::jsCreateClass(JSContext *cx, JSObject *globalObj, cons
 			JS_FN("stopAllEffects", S_SimpleAudioEngine::jsstopAllEffects, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("preloadEffect", S_SimpleAudioEngine::jspreloadEffect, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("unloadEffect", S_SimpleAudioEngine::jsunloadEffect, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setBackgroundMusicVolume", S_SimpleAudioEngine::jssetBackgroundMusicVolume, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -390,3 +391,18 @@ JSBool S_SimpleAudioEngine::jsunloadEffect(JSContext *cx, uint32_t argc, jsval *
 	return JS_TRUE;
 }
 
+JSBool S_SimpleAudioEngine::jssetBackgroundMusicVolume(JSContext *cx, uint32_t argc, jsval *vp) {
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_SimpleAudioEngine* self = NULL; JSGET_PTRSHELL(S_SimpleAudioEngine, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        double arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &arg0);
+        self->setBackgroundMusicVolume(arg0);
+
+        JS_SET_RVAL(cx, vp, JSVAL_VOID);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}

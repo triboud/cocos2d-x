@@ -74,6 +74,8 @@ public:
 	static JSBool jsstopAllEffects(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jspreloadEffect(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsunloadEffect(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetBackgroundMusicVolume(JSContext *cx, uint32_t argc, jsval *vp);
+    
 
 };
 

@@ -86,6 +86,20 @@ public:
             JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &string);
             if (string) {
                 char *cstr = JS_EncodeString(cx, string);
+                if (strcmp(cstr, "setTimeout") == 0)
+                {
+                    int a = 0;
+                }
+                if (strcmp(cstr, "setTimeout1") == 0)
+                {
+                    int b = 0;
+                }
+                if (strcmp(cstr, "after spark2") == 0)
+                {
+                    int c = 0;
+                }
+                
+                
                 cocos2d::CCLog(cstr);
             }
         }

@@ -69,6 +69,17 @@ private:
     JSObject* m_pThisJsObj;
 };
 
+class SchedulerSelector : public CCObject
+{
+public:
+    SchedulerSelector();
+    void schedulerCallBack(float dt);
+    void setJsCallBack(JSObject* pThisJsObj, JSObject* pCallBackFuncObj);
+private:
+    JSObject* m_pCallBackFuncObj;
+    JSObject* m_pThisJsObj;
+};
+
 class S_CCTransitionMoveInL : public cocos2d::CCTransitionMoveInL
 {
 	JSObject *m_jsobj;
@@ -479,6 +490,7 @@ public:
 	static JSBool jsisDone(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsstartWithTarget(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsstop(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jscopy(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsaction(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
@@ -2582,8 +2594,19 @@ public:
 	static JSBool jsconvertTouchToNodeSpaceAR(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jssetPosition(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jsgetPosition(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetRotation(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetRotation(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetContentSize(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jssetParent(JSContext *cx, uint32_t argc, jsval *vp);
     static JSBool jsgetParent(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetPositionX(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetPositionY(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetAnchorPoint(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetScale(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetTag(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetTag(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetChildByTag(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetChildren(JSContext *cx, uint32_t argc, jsval *vp);
 	virtual void update(float delta);
 
 };
@@ -2784,6 +2807,7 @@ public:
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
 	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinitWithString(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetString(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
 
@@ -2879,6 +2903,7 @@ public:
 	static JSBool jspurgeCachedData(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsmainLoop(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsenableRetinaDisplay(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetWinSize(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jssharedDirector(JSContext *cx, uint32_t argc, jsval *vp);
 
 };
@@ -3175,6 +3200,7 @@ public:
 	static JSBool jsunselected(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsregisterScriptHandler(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsunregisterScriptHandler(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetEnabled(JSContext *cx, uint32_t argc, jsval *vp);
 	virtual void update(float delta);
 	void menuAction(cocos2d::CCObject *o);
 
@@ -3244,9 +3270,11 @@ public:
 	static JSBool jsPropertyGet(JSContext *cx, JSObject *obj, jsid _id, jsval *val);
 	static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 	static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
-	static JSBool jstiledMapWithTMXFile(JSContext *cx, uint32_t argc, jsval *vp);
+	static JSBool jscreate(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsinitWithTMXFile(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jslayerNamed(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetMapSize(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsgetTileSize(JSContext *cx, uint32_t argc, jsval *vp);
 	virtual void update(float delta);
 
 };
@@ -4128,6 +4156,9 @@ public:
 	static JSBool jsupdateTransform(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsisFrameDisplayed(JSContext *cx, uint32_t argc, jsval *vp);
 	static JSBool jsdisplayFrame(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetColor(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetOpacity(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssetBlendFunc(JSContext *cx, uint32_t argc, jsval *vp);
 	virtual void update(float delta);
 
 };
@@ -4441,7 +4472,21 @@ public:
     static JSBool jsPropertySet(JSContext *cx, JSObject *obj, jsid _id, JSBool strict, jsval *val);
 };
 
+class S_CCScheduler : public cocos2d::CCScheduler
+{
+    JSObject *m_jsobj;
+public:
+    static JSClass *jsClass;
+    static JSObject *jsObject;
 
+    static JSBool jsConstructor(JSContext *cx, uint32_t argc, jsval *vp);
+    static void jsFinalize(JSContext *cx, JSObject *obj);
+    static void jsCreateClass(JSContext *cx, JSObject *globalObj, const char *name);
+    static JSBool jsscheduleSelector(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jsunscheduleAllSelectorsForTarget(JSContext *cx, uint32_t argc, jsval *vp);
+    static JSBool jssharedScheduler(JSContext *cx, uint32_t argc, jsval *vp);
+
+};
 
 void register_enums_cocos2d_generated(JSObject *global);
 

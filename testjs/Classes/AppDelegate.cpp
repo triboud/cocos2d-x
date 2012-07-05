@@ -52,7 +52,8 @@ bool AppDelegate::applicationDidFinishLaunching()
      */
     
     // run the main script
-    ScriptingCore::getInstance().runScript("JS/1to1/test_actions.js");
+    ScriptingCore::getInstance().runScript("JS/MoonWarriors/main.js");
+//    ScriptingCore::getInstance().runScript("JS/1to1/test_actions.js");
 //    ScriptingCore::getInstance().runScript("JS/1to1/test_ease_actions.js");
 //    ScriptingCore::getInstance().runScript("JS/1to1/test_particles.js");
 //    ScriptingCore::getInstance().runScript("JS/1to1/test_layer.js");

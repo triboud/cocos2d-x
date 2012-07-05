@@ -781,7 +781,7 @@ void S_CCLayer::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *na
 			JS_FN("registerWithTouchDispatcher", S_CCLayer::jsregisterWithTouchDispatcher, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("registerScriptTouchHandler", S_CCLayer::jsregisterScriptTouchHandler, 4, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("unregisterScriptTouchHandler", S_CCLayer::jsunregisterScriptTouchHandler, 0, JSPROP_PERMANENT | JSPROP_SHARED),
-			JS_FS_END
+            JS_FS_END
 		};
 
 		static JSFunctionSpec st_funcs[] = {
@@ -927,6 +927,7 @@ void S_CCLayer::ccTouchesBegan(CCSet* pTouches, CCEvent* pEvent) {
 			for (setIter = pTouches->begin(); setIter != pTouches->end(); setIter++, i++) {
 				pTouch = (CCTouch *)(*setIter);
 				CCPoint pt = pTouch->locationInView();
+                pt = CCDirector::sharedDirector()->convertToGL(pt);
 				//CCTouch *touch = new CCTouch(pt.x, pt.y);
                 CCTouch *touch = new CCTouch;
                 touch->setTouchInfo(pTouch->getID(), pt.x, pt.y);
@@ -958,6 +959,7 @@ void S_CCLayer::ccTouchesMoved(CCSet* pTouches, CCEvent* pEvent) {
 			for (setIter = pTouches->begin(); setIter != pTouches->end(); setIter++, i++) {
 				pTouch = (CCTouch *)(*setIter);
 				CCPoint pt = pTouch->locationInView();
+                pt = CCDirector::sharedDirector()->convertToGL(pt);
 				CCTouch *touch = new CCTouch;
                 touch->setTouchInfo(pTouch->getID(), pt.x, pt.y);
 				pointerShell_t *shell = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
@@ -988,6 +990,7 @@ void S_CCLayer::ccTouchesEnded(CCSet* pTouches, CCEvent* pEvent) {
 			for (setIter = pTouches->begin(); setIter != pTouches->end(); setIter++, i++) {
 				pTouch = (CCTouch *)(*setIter);
 				CCPoint pt = pTouch->locationInView();
+                pt = CCDirector::sharedDirector()->convertToGL(pt);
 				CCTouch *touch = new CCTouch; //(pt.x, pt.y);
                 touch->setTouchInfo(pTouch->getID(), pt.x, pt.y);
 				pointerShell_t *shell = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
@@ -1018,6 +1021,7 @@ void S_CCLayer::ccTouchesCancelled(CCSet* pTouches, CCEvent* pEvent) {
 			for (setIter = pTouches->begin(); setIter != pTouches->end(); setIter++, i++) {
 				pTouch = (CCTouch *)(*setIter);
 				CCPoint pt = pTouch->locationInView();
+                pt = CCDirector::sharedDirector()->convertToGL(pt);
 				CCTouch *touch = new CCTouch; //(pt.x, pt.y);
                 touch->setTouchInfo(pTouch->getID(), pt.x, pt.y);
 				pointerShell_t *shell = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
@@ -1110,14 +1114,15 @@ void S_CCLayer::update(float delta) {
 JSBool S_CCLayer::jscreate(JSContext *cx, uint32_t argc, jsval *vp)
 {
     if (argc == 0) {
-        CCLayer* ret = CCLayer::create();
+        S_CCLayer* ret = new S_CCLayer(NULL);
         if (ret == NULL) {
             JS_SET_RVAL(cx, vp, JSVAL_NULL);
             return JS_TRUE;
         }
         do {
-            ret->retain();
+            ret->init();
             JSObject *tmp = JS_NewObject(cx, S_CCLayer::jsClass, S_CCLayer::jsObject, NULL);
+            ret->m_jsobj = tmp;
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
             pt->flags = 0;//kPointerTemporary;
             pt->data = (void *)ret;
@@ -1540,9 +1545,10 @@ JSBool S_CCAnimationCache::jsanimationByName(JSContext *cx, uint32_t argc, jsval
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCAnimation::jsClass, S_CCAnimation::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;//kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -2677,6 +2683,8 @@ JSBool S_CCMenu::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             JSObject* arg0 = NULL;
             JS_ValueToObject( cx, *argvp++, &arg0);
             CCObject* narg0; JSGET_PTRSHELL(CCObject, narg0, arg0);
+            if (narg0 == NULL) continue;
+
             if (dynamic_cast<CCMenuItem*>(narg0) != NULL)
             {
                 pMenuItemArray->addObject(narg0);
@@ -2944,6 +2952,7 @@ void S_CCAction::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *n
 			JS_FN("isDone", S_CCAction::jsisDone, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("startWithTarget", S_CCAction::jsstartWithTarget, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("stop", S_CCAction::jsstop, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("copy", S_CCAction::jscopy, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -2996,6 +3005,22 @@ JSBool S_CCAction::jsstop(JSContext *cx, uint32_t argc, jsval *vp) {
 	}
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
+}
+JSBool S_CCAction::jscopy(JSContext *cx, uint32_t argc, jsval *vp) {
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCAction* self = NULL; JSGET_PTRSHELL(S_CCAction, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 0) {
+        JSObject *tmp = JS_NewObject(cx, S_CCAction::jsClass, S_CCAction::jsObject, NULL);
+        pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+        pt->flags = 0;
+        pt->data = (void *)self->copy();
+        JS_SetPrivate(tmp, pt);
+        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
 }
 JSBool S_CCAction::jsaction(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 0) {
@@ -5837,7 +5862,7 @@ JSBool S_CCAnimation::jsinit(JSContext *cx, uint32_t argc, jsval *vp) {
 	return JS_TRUE;
 }
 JSBool S_CCAnimation::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 0 || argc == 1) {
+	if (argc >= 0 && argc <= 3) {
         CCAnimation* ret = NULL;
         if (argc == 0)
         {
@@ -5845,11 +5870,75 @@ JSBool S_CCAnimation::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
         }
         else
         {
-            CCAssert(0, "not implement, we should use js array.");
             JSObject *arg0;
-            JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
-            CCArray* narg0; JSGET_PTRSHELL(CCArray, narg0, arg0);
-            ret = CCAnimation::create(narg0);
+            double arg1;
+            uint32_t arg2;
+            if (argc == 1)
+            {
+                JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+            }
+            else if (argc == 2)
+            {
+                JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "od", &arg0, &arg1);
+            }
+            else
+            {
+                JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "odu", &arg0, &arg1, &arg2);
+            }
+            
+            if (arg0 == NULL)
+            {
+                ret = CCAnimation::create(NULL, arg1);
+            }
+            else if (JS_IsArrayObject(cx, arg0))
+            {
+                int nArrayType = -1;
+                CCArray* pArray = new CCArray();
+                jsuint len = 0;
+                JS_GetArrayLength(cx, arg0, &len);
+                for (jsuint i = 0; i < len; ++i)
+                {
+                    jsval val;
+                    JSObject* obj;
+                    JS_GetElement(cx, arg0, i, &val);
+                    JS_ValueToObject(cx, val, &obj);
+                    CCObject* cobj = NULL; JSGET_PTRSHELL(CCObject, cobj, obj);
+                    if (dynamic_cast<CCSpriteFrame*>(cobj) && (nArrayType == 0 || nArrayType == -1))
+                    {
+                        nArrayType = 0; // spriteFrame
+                    }
+                    else if (dynamic_cast<CCAnimationFrame*>(cobj) && (nArrayType == 1 || nArrayType == -1))
+                    {
+                        nArrayType = 1; // animationFrame
+                    }
+                    else
+                    {
+                        CCAssert(false, "type error");
+                    }
+                    pArray->addObject(cobj);
+                }
+                
+                if (argc == 1 && nArrayType == 0)
+                {
+                    ret = CCAnimation::create(pArray);
+                }
+                else if (argc == 2 && nArrayType == 0)
+                {
+                    ret = CCAnimation::create(pArray, arg1);
+                }
+                else if (argc == 3 && nArrayType == 1)
+                {
+                    ret = CCAnimation::create(pArray, arg1, arg2);
+                }
+                else
+                {
+                    CCAssert(false, "type error");
+                }
+
+                pArray->release();
+            }
+            
+
         }
 		
 		if (ret == NULL) {
@@ -7392,14 +7481,27 @@ void S_CCTransitionFade::jsCreateClass(JSContext *cx, JSObject *globalObj, const
 }
 
 JSBool S_CCTransitionFade::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 3) {
-		double arg0;
-		JSObject *arg1;
-		JSObject *arg2;
-		JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "doo", &arg0, &arg1, &arg2);
-		CCScene* narg1; JSGET_PTRSHELL(CCScene, narg1, arg1);
-		ccColor3B* narg2; JSGET_PTRSHELL(ccColor3B, narg2, arg2);
-		CCTransitionFade* ret = CCTransitionFade::create(arg0, narg1, *narg2);
+	if (argc == 2 || argc == 3) {
+		double arg0 = 0.0;
+		JSObject *arg1 = NULL;
+		JSObject *arg2 = NULL;
+        CCScene* narg1 = NULL; 
+        ccColor3B* narg2 = NULL;
+        CCTransitionFade* ret = NULL;
+        if (argc == 2)
+        {
+            JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "do", &arg0, &arg1);
+            JSGET_PTRSHELL(CCScene, narg1, arg1);
+            ret = CCTransitionFade::create(arg0, narg1);
+        }
+        else
+        {
+		    JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "doo", &arg0, &arg1, &arg2);
+            JSGET_PTRSHELL(CCScene, narg1, arg1);
+            JSGET_PTRSHELL(ccColor3B, narg2, arg2);
+            ret = CCTransitionFade::create(arg0, narg1, *narg2);
+        }
+
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
@@ -8152,6 +8254,14 @@ JSBool S_CCPoint::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
 {
 	JSObject *obj = JS_NewObject(cx, S_CCPoint::jsClass, S_CCPoint::jsObject, NULL);
 	S_CCPoint *cobj = new S_CCPoint(obj);
+    if (argc == 2)
+    {
+        double x = 0.0, y = 0.0;
+        JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "dd", &x, &y);
+        cobj->x = x;
+        cobj->y = y;
+    }
+    
 	pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
 	pt->flags = 0; pt->data = cobj;
 	JS_SetPrivate(obj, pt);
@@ -9306,6 +9416,14 @@ JSBool S_CCSize::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
 {
 	JSObject *obj = JS_NewObject(cx, S_CCSize::jsClass, S_CCSize::jsObject, NULL);
 	S_CCSize *cobj = new S_CCSize(obj);
+    if (argc == 2)
+    {
+        double w = 0.0, h = 0.0;
+        JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "dd", &w, &h);
+        cobj->width = w;
+        cobj->height = h;
+    }
+    
 	pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
 	pt->flags = 0; pt->data = cobj;
 	JS_SetPrivate(obj, pt);
@@ -9861,6 +9979,13 @@ JSBool S_CCRect::jsConstructor(JSContext *cx, uint32_t argc, jsval *vp)
 {
 	JSObject *obj = JS_NewObject(cx, S_CCRect::jsClass, S_CCRect::jsObject, NULL);
 	S_CCRect *cobj = new S_CCRect(obj);
+    if (argc == 4)
+    {
+        double arg0, arg1, arg2, arg3;
+        JS_ConvertArguments(cx, 4, JS_ARGV(cx, vp), "dddd", &arg0, &arg1, &arg2, &arg3);
+        cobj->setRect(arg0, arg1, arg2, arg3);
+    }
+    
 	pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
 	pt->flags = 0; pt->data = cobj;
 	JS_SetPrivate(obj, pt);
@@ -12873,12 +12998,35 @@ JSBool S_CCSpriteFrameCache::jsaddSpriteFramesWithFile(JSContext *cx, uint32_t a
 	JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
 	S_CCSpriteFrameCache* self = NULL; JSGET_PTRSHELL(S_CCSpriteFrameCache, self, obj);
 	if (self == NULL) return JS_FALSE;
-	if (argc == 1) {
+	if (argc == 1 || argc == 2) {
 		JSString *arg0;
-		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
-		char *narg0 = JS_EncodeString(cx, arg0);
-		self->addSpriteFramesWithFile(narg0);
-		
+        JSString* textureName;
+        JSObject* texture;
+        if (argc == 1)
+        {
+            JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
+            char *narg0 = JS_EncodeString(cx, arg0);
+            self->addSpriteFramesWithFile(narg0);
+        }
+        else
+        {
+            jsval* argvp = JS_ARGV(cx, vp);
+            arg0 = JS_ValueToString( cx, *argvp++);
+            char *narg0 = JS_EncodeString(cx, arg0);
+            if (JSVAL_IS_STRING(*argvp))
+            {
+                textureName = JS_ValueToString( cx, *argvp++);
+                char *narg1 = JS_EncodeString(cx, textureName);
+                self->addSpriteFramesWithFile(narg0, narg1);
+            }
+            else
+            {
+                JS_ValueToObject( cx, *argvp++, &texture);
+                CCTexture2D* ntex = NULL; JSGET_PTRSHELL(CCTexture2D, ntex, texture);
+                self->addSpriteFramesWithFile(narg0, ntex);
+            }
+        }
+
 		JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 		return JS_TRUE;
 	}
@@ -16349,6 +16497,17 @@ void S_CCNode::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *nam
             JS_FN("getPosition", S_CCNode::jsgetPosition, 0, JSPROP_PERMANENT | JSPROP_SHARED),
             JS_FN("setParent", S_CCNode::jssetParent, 1, JSPROP_PERMANENT | JSPROP_SHARED),
             JS_FN("getParent", S_CCNode::jsgetParent, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setRotation", S_CCNode::jssetRotation, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getRotation", S_CCNode::jsgetRotation, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getContentSize", S_CCNode::jsgetContentSize, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getPositionX", S_CCNode::jsgetPositionX, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getPositionY", S_CCNode::jsgetPositionY, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setAnchorPoint", S_CCNode::jssetAnchorPoint, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setScale", S_CCNode::jssetScale, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setTag", S_CCNode::jssetTag, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setTag", S_CCNode::jsgetTag, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getChildByTag", S_CCNode::jsgetChildByTag, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getChildren", S_CCNode::jsgetChildren, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -16427,15 +16586,17 @@ JSBool S_CCNode::jsremoveFromParentAndCleanup(JSContext *cx, uint32_t argc, jsva
 	JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
 	S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
 	if (self == NULL) return JS_FALSE;
-	if (argc == 1) {
+
+    if (argc == 1) {
 		JSBool arg0;
 		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "b", &arg0);
 		self->removeFromParentAndCleanup(arg0);
-		
-		JS_SET_RVAL(cx, vp, JSVAL_TRUE);
-		return JS_TRUE;
-	}
-	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    }
+    else
+    {
+        self->removeFromParentAndCleanup(false);
+    }
+	JS_SET_RVAL(cx, vp, JSVAL_VOID);
 	return JS_TRUE;
 }
 JSBool S_CCNode::jsremoveChild(JSContext *cx, uint32_t argc, jsval *vp) {
@@ -16447,11 +16608,16 @@ JSBool S_CCNode::jsremoveChild(JSContext *cx, uint32_t argc, jsval *vp) {
 		JSBool arg1;
 		JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "ob", &arg0, &arg1);
 		CCNode* narg0; JSGET_PTRSHELL(CCNode, narg0, arg0);
-		self->removeChild(narg0, arg1);
+		self->removeChild(narg0, false);//, arg1);
 		
 		JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 		return JS_TRUE;
 	}
+    else
+    {
+        CCAssert(false, "you have to pass two parameters to removeChild");
+    }
+    
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
@@ -16588,6 +16754,7 @@ JSBool S_CCNode::jsboundingBox(JSContext *cx, uint32_t argc, jsval *vp) {
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
+
 JSBool S_CCNode::jsrunAction(JSContext *cx, uint32_t argc, jsval *vp) {
 	JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
 	S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
@@ -16928,6 +17095,149 @@ JSBool S_CCNode::jsgetPosition(JSContext *cx, uint32_t argc, jsval *vp)
     return JS_TRUE;
 }
 
+JSBool S_CCNode::jssetRotation(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        double arg0 = 0.0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &arg0);
+        self->setRotation(arg0);
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jsgetRotation(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    JSObject* jsObj = NULL;
+    if (argc == 0) {
+        do {
+            JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(self->getRotation()));
+        } while (0);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jsgetContentSize(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    JSObject* jsObj = NULL;
+    if (argc == 0) {
+        CCSize* ret = new CCSize(self->getContentSize());
+        do {
+            JSObject *tmp = JS_NewObject(cx, S_CCSize::jsClass, S_CCSize::jsObject, NULL);
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = 0;//kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jsgetPositionX(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    JSObject* jsObj = NULL;
+    if (argc == 0) {
+        do {
+            JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(self->getPositionX()));
+        } while (0);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jsgetPositionY(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    JSObject* jsObj = NULL;
+    if (argc == 0) {
+        do {
+            JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(self->getPositionY()));
+        } while (0);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jssetAnchorPoint(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        JSObject* arg0 = NULL;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+        S_CCPoint* narg0 = NULL; JSGET_PTRSHELL(S_CCPoint, narg0, arg0);
+        self->setAnchorPoint(ccp(narg0->x, narg0->y));
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jssetScale(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        double arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &arg0);
+        self->setScale(arg0);
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jssetTag(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        int arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "i", &arg0);
+        self->setTag(arg0);
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jsgetTag(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    JSObject* jsObj = NULL;
+    if (argc == 0) {
+        do {
+            JS_SET_RVAL(cx, vp, INT_TO_JSVAL(self->getTag()));
+        } while (0);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
 JSBool S_CCNode::jssetParent(JSContext *cx, uint32_t argc, jsval *vp)
 {
     JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
@@ -16951,6 +17261,12 @@ JSBool S_CCNode::jsgetParent(JSContext *cx, uint32_t argc, jsval *vp)
     JSObject* jsObj = NULL;
     if (argc == 0) {
         CCNode* ret = self->getParent();
+        if (ret == NULL) 
+        {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+
         do {
             JSObject *tmp = JS_NewObject(cx, S_CCNode::jsClass, S_CCNode::jsObject, NULL);
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
@@ -16958,6 +17274,76 @@ JSBool S_CCNode::jsgetParent(JSContext *cx, uint32_t argc, jsval *vp)
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jsgetChildByTag(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    JSObject* jsObj = NULL;
+    if (argc == 1) {
+        int arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "i", &arg0);
+        CCNode* ret = self->getChildByTag(arg0);
+        if (ret == NULL) 
+        {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+
+        do {
+            JSObject *tmp = JS_NewObject(cx, S_CCNode::jsClass, S_CCNode::jsObject, NULL);
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCNode::jsgetChildren(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
+    if (self == NULL) return JS_FALSE;
+    JSObject* jsObj = NULL;
+    if (argc == 0) {
+        CCArray* pChildren = self->getChildren();
+        if (pChildren == NULL || pChildren->count() == 0) 
+        {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            return JS_TRUE;
+        }
+
+        jsval *jsChildren = new jsval[pChildren->count()];
+
+        CCObject* pObj = NULL;
+        int i = 0;
+        CCARRAY_FOREACH(pChildren, pObj)
+        {
+            pointerShell_t *shell = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            shell->flags = kPointerTemporary;
+            shell->data = (void *)pObj;
+            JSObject *tmp = JS_NewObject(cx, S_CCNode::jsClass, S_CCNode::jsObject, NULL);
+            JS_SetPrivate(tmp, shell);
+            jsChildren[i] = OBJECT_TO_JSVAL(tmp);
+            i++;
+        }
+
+        do {
+            JSObject *ret = JS_NewArrayObject(cx, pChildren->count(), jsChildren);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+            
         } while (0);
         return JS_TRUE;
     }
@@ -18184,6 +18570,7 @@ void S_CCLabelTTF::jsCreateClass(JSContext *cx, JSObject *globalObj, const char 
 
 		static JSFunctionSpec funcs[] = {
 			JS_FN("initWithString", S_CCLabelTTF::jsinitWithString, 5, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setString", S_CCLabelTTF::jssetString, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -18526,6 +18913,7 @@ void S_CCDirector::jsCreateClass(JSContext *cx, JSObject *globalObj, const char 
 			JS_FN("purgeCachedData", S_CCDirector::jspurgeCachedData, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("mainLoop", S_CCDirector::jsmainLoop, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("enableRetinaDisplay", S_CCDirector::jsenableRetinaDisplay, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getWinSize", S_CCDirector::jsgetWinSize, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -18857,6 +19245,29 @@ JSBool S_CCDirector::jsenableRetinaDisplay(JSContext *cx, uint32_t argc, jsval *
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
+
+JSBool S_CCDirector::jsgetWinSize(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCDirector* self = NULL; JSGET_PTRSHELL(S_CCDirector, self, obj);
+    if (self == NULL) return JS_FALSE;
+    JSObject* jsObj = NULL;
+    if (argc == 0) {
+        CCSize* ret = new CCSize(self->getWinSize());
+        do {
+            JSObject *tmp = JS_NewObject(cx, S_CCSize::jsClass, S_CCSize::jsObject, NULL);
+            pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+            pt->flags = 0;//kPointerTemporary;
+            pt->data = (void *)ret;
+            JS_SetPrivate(tmp, pt);
+            JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        } while (0);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
 JSBool S_CCDirector::jssharedDirector(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 0) {
 		CCDirector* ret = CCDirector::sharedDirector();
@@ -20617,7 +21028,8 @@ void S_CCMenuItem::jsCreateClass(JSContext *cx, JSObject *globalObj, const char 
 			JS_FN("unselected", S_CCMenuItem::jsunselected, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("registerScriptHandler", S_CCMenuItem::jsregisterScriptHandler, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("unregisterScriptHandler", S_CCMenuItem::jsunregisterScriptHandler, 0, JSPROP_PERMANENT | JSPROP_SHARED),
-			JS_FS_END
+            JS_FN("setEnabled", S_CCMenuItem::jssetEnabled, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FS_END
 		};
 
 		static JSFunctionSpec st_funcs[] = {
@@ -20714,6 +21126,22 @@ JSBool S_CCMenuItem::jsunregisterScriptHandler(JSContext *cx, uint32_t argc, jsv
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
+
+JSBool S_CCMenuItem::jssetEnabled(JSContext *cx, uint32_t argc, jsval *vp) {
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCMenuItem* self = NULL; JSGET_PTRSHELL(S_CCMenuItem, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        JSBool arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "b", &arg0);
+        self->setEnabled(arg0);
+        JS_SET_RVAL(cx, vp, JSVAL_VOID);
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
 void S_CCMenuItem::update(float delta) {
 	if (m_jsobj) {
 		JSContext* cx = ScriptingCore::getInstance().getGlobalContext();
@@ -21163,31 +21591,34 @@ void S_CCTMXTiledMap::jsCreateClass(JSContext *cx, JSObject *globalObj, const ch
 		static JSFunctionSpec funcs[] = {
 			JS_FN("initWithTMXFile", S_CCTMXTiledMap::jsinitWithTMXFile, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("layerNamed", S_CCTMXTiledMap::jslayerNamed, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getMapSize", S_CCTMXTiledMap::jsgetMapSize, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("getTileSize", S_CCTMXTiledMap::jsgetTileSize, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("tiledMapWithTMXFile", S_CCTMXTiledMap::jstiledMapWithTMXFile, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCTMXTiledMap::jscreate, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
 	jsObject = JS_InitClass(cx,globalObj,S_CCNode::jsObject,jsClass,S_CCTMXTiledMap::jsConstructor,0,properties,funcs,NULL,st_funcs);
 }
 
-JSBool S_CCTMXTiledMap::jstiledMapWithTMXFile(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCTMXTiledMap::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 1) {
 		JSString *arg0;
 		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
 		char *narg0 = JS_EncodeString(cx, arg0);
-		CCTMXTiledMap* ret = CCTMXTiledMap::tiledMapWithTMXFile(narg0);
+		CCTMXTiledMap* ret = CCTMXTiledMap::create(narg0);
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCTMXTiledMap::jsClass, S_CCTMXTiledMap::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
+			pt->flags = 0;//kPointerTemporary;
 			pt->data = (void *)ret;
 			JS_SetPrivate(tmp, pt);
 			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -21241,6 +21672,43 @@ JSBool S_CCTMXTiledMap::jslayerNamed(JSContext *cx, uint32_t argc, jsval *vp) {
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
+
+JSBool S_CCTMXTiledMap::jsgetMapSize(JSContext *cx, uint32_t argc, jsval *vp) {
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCTMXTiledMap* self = NULL; JSGET_PTRSHELL(S_CCTMXTiledMap, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 0) {
+        JSObject *tmp = JS_NewObject(cx, S_CCSize::jsClass, S_CCSize::jsObject, NULL);
+        pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+        CCSize* ctmp = new CCSize(self->getMapSize());
+        pt->flags = 0;
+        pt->data = (void *)ctmp;
+        JS_SetPrivate(tmp, pt);
+        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
+JSBool S_CCTMXTiledMap::jsgetTileSize(JSContext *cx, uint32_t argc, jsval *vp) {
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCTMXTiledMap* self = NULL; JSGET_PTRSHELL(S_CCTMXTiledMap, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 0) {
+        JSObject *tmp = JS_NewObject(cx, S_CCSize::jsClass, S_CCSize::jsObject, NULL);
+        pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
+        CCSize* ctmp = new CCSize(self->getTileSize());
+        pt->flags = 0;
+        pt->data = (void *)ctmp;
+        JS_SetPrivate(tmp, pt);
+        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
+        return JS_TRUE;
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    return JS_TRUE;
+}
+
 void S_CCTMXTiledMap::update(float delta) {
 	if (m_jsobj) {
 		JSContext* cx = ScriptingCore::getInstance().getGlobalContext();
@@ -24561,8 +25029,8 @@ JSBool S_CCFadeTo::jsupdate(JSContext *cx, uint32_t argc, jsval *vp) {
 JSBool S_CCFadeTo::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 2) {
 		double arg0;
-		unsigned char arg1;
-		JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "dc", &arg0, &arg1);
+		int arg1;
+		JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "di", &arg0, &arg1);
 		CCFadeTo* ret = CCFadeTo::create(arg0, arg1);
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
@@ -26889,6 +27357,9 @@ void S_CCSprite::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *n
 			JS_FN("updateTransform", S_CCSprite::jsupdateTransform, 0, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("isFrameDisplayed", S_CCSprite::jsisFrameDisplayed, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FN("displayFrame", S_CCSprite::jsdisplayFrame, 0, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setColor", S_CCSprite::jssetColor, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setOpacity", S_CCSprite::jssetOpacity, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+            JS_FN("setBlendFunc", S_CCSprite::jssetBlendFunc, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
@@ -26899,6 +27370,51 @@ void S_CCSprite::jsCreateClass(JSContext *cx, JSObject *globalObj, const char *n
 		};
 
 	jsObject = JS_InitClass(cx,globalObj,S_CCNode::jsObject,jsClass,S_CCSprite::jsConstructor,0,properties,funcs,NULL,st_funcs);
+}
+
+JSBool S_CCSprite::jssetColor(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCSprite* self = NULL; JSGET_PTRSHELL(S_CCSprite, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        JSObject* arg0 = NULL;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+        S_CCColor3B* narg0 = NULL; JSGET_PTRSHELL(S_CCColor3B, narg0, arg0);
+        self->setColor(ccc3(narg0->r, narg0->g, narg0->b));
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCSprite::jssetOpacity(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCSprite* self = NULL; JSGET_PTRSHELL(S_CCSprite, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        int arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "i", &arg0);
+        self->setOpacity(arg0);
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
+}
+
+JSBool S_CCSprite::jssetBlendFunc(JSContext *cx, uint32_t argc, jsval *vp)
+{
+    JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    S_CCSprite* self = NULL; JSGET_PTRSHELL(S_CCSprite, self, obj);
+    if (self == NULL) return JS_FALSE;
+    if (argc == 1) {
+        JSObject* arg0 = NULL;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+        S_BlendFunc* narg0 = NULL; JSGET_PTRSHELL(S_BlendFunc, narg0, arg0);
+        ccBlendFunc blendFunc = {narg0->src, narg0->dst};
+        self->setBlendFunc(blendFunc);
+    }
+    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return JS_TRUE;
 }
 
 JSBool S_CCSprite::jsdraw(JSContext *cx, uint32_t argc, jsval *vp) {
@@ -27600,11 +28116,21 @@ JSBool S_CCScaleBy::jsreverse(JSContext *cx, uint32_t argc, jsval *vp) {
 	return JS_TRUE;
 }
 JSBool S_CCScaleBy::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 2) {
+	if (argc == 2 || argc == 3) {
 		double arg0;
 		double arg1;
-		JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "dd", &arg0, &arg1);
-		CCScaleBy* ret = CCScaleBy::create(arg0, arg1);
+        double arg2;
+        CCScaleBy* ret = NULL;
+        if (argc == 2)
+        {
+            JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "dd", &arg0, &arg1);
+            ret = CCScaleBy::create(arg0, arg1);
+        }
+        else
+        {
+            JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "ddd", &arg0, &arg1, &arg2);
+            ret = CCScaleBy::create(arg0, arg1, arg2);
+        }
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
@@ -28338,11 +28864,23 @@ JSBool S_CCScaleTo::jsupdate(JSContext *cx, uint32_t argc, jsval *vp) {
 	return JS_TRUE;
 }
 JSBool S_CCScaleTo::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 2) {
-		double arg0;
-		double arg1;
-		JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "dd", &arg0, &arg1);
-		CCScaleTo* ret = CCScaleTo::create(arg0, arg1);
+	if (argc == 2 || argc == 3) {
+		double arg0 = 0.0;
+		double arg1 = 0.0;
+        double arg2 = 0.0;
+        CCScaleTo* ret = NULL;
+        if (argc == 2)
+        {
+            JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "dd", &arg0, &arg1);
+            ret = CCScaleTo::create(arg0, arg1);
+        }
+        else if (argc == 3)
+        {
+            JS_ConvertArguments(cx, 3, JS_ARGV(cx, vp), "ddd", &arg0, &arg1, &arg2);
+            ret = CCScaleTo::create(arg0, arg1, arg2);
+        }
+        
+
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
