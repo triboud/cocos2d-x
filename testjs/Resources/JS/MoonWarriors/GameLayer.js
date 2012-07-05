@@ -121,7 +121,6 @@ cc.log("GameLayer 10-----------------");
         this.removeInactiveUnit(dt);
         this.checkIsReborn();
         this.updateUI();
-        
         //cc.$("#cou").innerHTML = "Ship:" + 1 + ", Enemy: " + global.enemyContainer.length
         //    + ", Bullet:" + global.ebulletContainer.length + "," + global.sbulletContainer.length + " all:" + this._layer.getChildren().length;
     };
@@ -255,7 +254,22 @@ cc.log("GameLayer 10-----------------");
             if ((selChild.getTag() == global.Tag.Enemy) || (selChild.getTag() == global.Tag.EnemyBullet) || (selChild.getTag() == global.Tag.ShipBullet)) {
                 var childRect = selChild.boundingBox();
                 if (!cc.Rect.CCRectIntersectsRect(screenRect, childRect)) {
+                    // cjh add
+                    if (selChild instanceof cc.Sprite)
+                    {
+                        cc.log("child is sprite");
+                    }
+                    else if (selChild instanceof cc.Node)
+                    {
+                        cc.log("child is node");
+                    }
+                    else
+                    {
+                        cc.log("error..................");
+                    }
+                    // cjh add end
                     selChild.destroy();
+                    cc.log("must go here.........");
                 }
             }
         }
@@ -269,22 +283,24 @@ cc.log("GameLayer 10-----------------");
     };
     this.initBackground = function () {
         // bg
+        cc.log("initBackground 0");
         this._backSky = cc.Sprite.create(s_bg01);
         this._backSky.setAnchorPoint(cc.PointZero());
         this._backSkyHeight = this._backSky.getContentSize().height;
         this._layer.addChild(this._backSky, -10);
-
+cc.log("initBackground 1");
         //tilemap
         this._backTileMap = cc.TMXTiledMap.create(s_level01);
         this._layer.addChild(this._backTileMap, -9);
         this._backTileMapHeight = this._backTileMap.getMapSize().height * this._backTileMap.getTileSize().height;
-
+cc.log("initBackground 2");
         this._backSkyHeight -= 48;
         this._backTileMapHeight -= 200;
         this._backSky.runAction(cc.MoveBy.create(3, new cc.Point(0, -48)));
         this._backTileMap.runAction(cc.MoveBy.create(3, new cc.Point(0, -200)));
-
+cc.log("initBackground 3");
         cc.Scheduler.sharedScheduler().scheduleSelector(this.movingBackground, this, 3, false);
+        cc.log("initBackground 4");
     };
     this.movingBackground = function () {
         this._backSky.runAction(cc.MoveBy.create(3, new cc.Point(0, -48)));

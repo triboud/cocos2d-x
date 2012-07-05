@@ -1,5 +1,15 @@
 #include "cocos2d_generated.hpp"
 
+typedef struct _ScheduleElement
+{
+    JSObject* keyJsObj;     /** hash key */
+    CCObject* valNativeObj; /** hash value */
+
+    UT_hash_handle hh; /* makes this class hashable */
+}ScheduleElement;
+
+static ScheduleElement* s_pScheduleDict = NULL;
+
 // MenuItemSelector
 MenuItemSelector::MenuItemSelector()
 : m_pCallBackFuncObj(NULL)
@@ -202,6 +212,7 @@ JSBool S_CCMenuItemSprite::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             pt->flags = 0;//FIXME: ? kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
+            ret->setUserData(tmp);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
         } while (0);
 
@@ -219,7 +230,6 @@ JSBool S_CCCallFunc::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
         CCObject* narg0 = NULL;
         JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "oo", &arg0, &arg1);
 
-        
         S_CCCallFunc* ret = new S_CCCallFunc(NULL);
         if (ret)
         {
@@ -325,7 +335,7 @@ JSBool S_CCSequence::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
         // temporary because it's just a wrapper for an autoreleased object
         // or worst case, it's an already binded object (if it's just one item in the array)
         pointerShell_t* pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-        pt->flags = 0;//FIXME: why shall we use kPointerTemporary?; by James Chen
+        pt->flags = kPointerTemporary;//FIXME: why shall we use kPointerTemporary?; by James Chen
         pt->data = prev;
         JSObject* out = JS_NewObject(cx, S_CCSequence::jsClass, S_CCSequence::jsObject, NULL);
         prev->jsObject = out;
@@ -472,6 +482,7 @@ JSBool S_CCLabelTTF::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             pt->flags = 0;// kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
+            ret->setUserData(tmp);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
         } while (0);
         return JS_TRUE;
@@ -631,6 +642,7 @@ JSBool S_CCMenuItemLabel::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             pt->flags = 0;//FIXME: ? kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
+            ret->setUserData(tmp);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
         } while (0);
 
@@ -916,6 +928,7 @@ JSBool S_CCMenuItemToggle::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             pt->flags = 0;//kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
+            ret->setUserData(tmp);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
         } while (0);
 
@@ -1074,25 +1087,44 @@ void S_CCScheduler::jsCreateClass(JSContext *cx, JSObject *globalObj, const char
 
 JSBool S_CCScheduler::jsscheduleSelector(JSContext *cx, uint32_t argc, jsval *vp) {
     JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
+    CCLog("native: jsscheduleSelector 1");
     S_CCScheduler* self = NULL; JSGET_PTRSHELL(S_CCScheduler, self, obj);
+    CCLog("native: jsscheduleSelector 2");
     if (self == NULL) return JS_FALSE;
     if (argc == 4) {
         JSObject* arg0;
         JSObject* arg1;
         double arg2;
         JSBool arg3;
+        CCLog("native: jsscheduleSelector 3");
         JS_ConvertArguments(cx, 4, JS_ARGV(cx, vp), "oodb", &arg0, &arg1, &arg2, &arg3);
+        CCLog("native: jsscheduleSelector 4");
         SchedulerSelector* pSchedulerSelector = new SchedulerSelector();
         pSchedulerSelector->setJsCallBack(arg1, arg0);
+
+        ScheduleElement *pElement = NULL;
+        HASH_FIND_INT(s_pScheduleDict, &arg1, pElement);
+        if (pElement != NULL)
+        {
+            if (pElement->valNativeObj == pSchedulerSelector)
+            {
+                self->unscheduleSelector(schedule_selector(SchedulerSelector::schedulerCallBack), pSchedulerSelector);
+                CC_SAFE_RELEASE(pElement->valNativeObj);
+                HASH_DEL(s_pScheduleDict, pElement);
+            }
+        }
+
+        CCLog("native: jsscheduleSelector 5");
         self->scheduleSelector(schedule_selector(SchedulerSelector::schedulerCallBack), pSchedulerSelector, arg2, arg3);
-        pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-        pt->flags = kPointerTemporary;
-        pt->data = (void *)pSchedulerSelector;
-        JS_SetPrivate(arg1, pt);
-        JS_SET_RVAL(cx, vp, JSVAL_VOID);
+
+        pElement = new ScheduleElement();
+        pElement->keyJsObj = arg1;
+        pElement->valNativeObj = pSchedulerSelector;
+        HASH_ADD_INT(s_pScheduleDict, keyJsObj, pElement);
 
         return JS_TRUE;
     }
+    CCLog("native: jsscheduleSelector 7");
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return JS_TRUE;
 }
@@ -1104,8 +1136,18 @@ JSBool S_CCScheduler::jsunscheduleAllSelectorsForTarget(JSContext *cx, uint32_t 
     if (argc == 1) {
         JSObject* arg0;
         JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
-        CCObject* narg0 = NULL; JSGET_PTRSHELL(CCObject, narg0, arg0);
-        self->unscheduleAllSelectorsForTarget(narg0);
+        ScheduleElement *pElement = NULL;
+        HASH_FIND_INT(s_pScheduleDict, &arg0, pElement);
+        if (pElement != NULL)
+        {
+            self->unscheduleAllSelectorsForTarget(pElement->valNativeObj);
+            CC_SAFE_RELEASE(pElement->valNativeObj);
+            HASH_DEL(s_pScheduleDict, pElement);
+        }
+        else
+        {
+           // CCAssert(false, "can't find the object which invoke this scheduler");
+        }
         JS_SET_RVAL(cx, vp, JSVAL_VOID);
 
         return JS_TRUE;
