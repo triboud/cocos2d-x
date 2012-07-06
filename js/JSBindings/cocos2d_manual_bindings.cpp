@@ -2,9 +2,10 @@
 
 typedef struct _ScheduleElement
 {
-    JSObject* keyJsObj;     /** hash key */
-    CCObject* valNativeObj; /** hash value */
-
+    JSObject* jsThisObj;     /** hash key */
+    JSObject* jsFuncObj;    /** js callback function value */
+    CCObject* nativeObj;    /** hash value */
+    
     UT_hash_handle hh; /* makes this class hashable */
 }ScheduleElement;
 
@@ -20,11 +21,12 @@ MenuItemSelector::MenuItemSelector()
 void MenuItemSelector::menuCallBack(CCObject* pSender)
 {
     JSContext* cx  = ScriptingCore::getInstance().getGlobalContext();
-    CCAssert(JS_ValueToFunction(cx, OBJECT_TO_JSVAL(m_pCallBackFuncObj)), "Should be a function");
+    CCAssert(JS_ObjectIsFunction(cx, m_pCallBackFuncObj), "Should be a function");
     CCObject* pSenderFromJs = NULL; JSGET_PTRSHELL(CCObject, pSenderFromJs, m_pSender);
     CCAssert(pSenderFromJs == pSender, "");
     jsval rval;
     jsval val = OBJECT_TO_JSVAL(m_pSender);
+
 
     JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 1, &val, &rval);
 }
@@ -46,7 +48,7 @@ CallFuncSelector::CallFuncSelector()
 void CallFuncSelector::callBack()
 {
     JSContext* cx  = ScriptingCore::getInstance().getGlobalContext();
-    CCAssert(JS_ValueToFunction(cx, OBJECT_TO_JSVAL(m_pCallBackFuncObj)), "Should be a function");
+    CCAssert(JS_ObjectIsFunction(cx, m_pCallBackFuncObj), "Should be a function");
     jsval rval;
     JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 0, NULL, &rval);
 }
@@ -64,11 +66,12 @@ SchedulerSelector::SchedulerSelector()
 }
 
 void SchedulerSelector::schedulerCallBack(float dt)
-{
+{    
     JSContext* cx  = ScriptingCore::getInstance().getGlobalContext();
-    CCAssert(JS_ValueToFunction(cx, OBJECT_TO_JSVAL(m_pCallBackFuncObj)), "Should be a function");
+    CCAssert( JS_ObjectIsFunction(cx, m_pCallBackFuncObj), "Should be a function");
     jsval rval;
-    jsval arg = DOUBLE_TO_JSVAL(dt);
+    jsval arg;
+    JS_NewNumberValue(cx, dt, &arg);
     JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 1, &arg, &rval);
 }
 
@@ -207,9 +210,9 @@ JSBool S_CCMenuItemSprite::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             {
                 ret->m_pMenuItemSelector->setJsCallBack(pThisObj, pCallBackObj, tmp);
             }
-            
+
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = 0;//FIXME: ? kPointerTemporary;
+            pt->flags = kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             ret->setUserData(tmp);
@@ -256,9 +259,10 @@ JSBool S_CCCallFunc::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             {
                 ret->m_pCallFuncSelector->setJsCallBack(arg0, arg1);
             }
-
+            JS_AddObjectRoot(cx, &arg0);
+            JS_AddObjectRoot(cx, &arg1);
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = 0;//kPointerTemporary;
+            pt->flags = kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
@@ -335,7 +339,7 @@ JSBool S_CCSequence::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
         // temporary because it's just a wrapper for an autoreleased object
         // or worst case, it's an already binded object (if it's just one item in the array)
         pointerShell_t* pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-        pt->flags = kPointerTemporary;//FIXME: why shall we use kPointerTemporary?; by James Chen
+        pt->flags = kPointerTemporary;
         pt->data = prev;
         JSObject* out = JS_NewObject(cx, S_CCSequence::jsClass, S_CCSequence::jsObject, NULL);
         prev->jsObject = out;
@@ -479,7 +483,7 @@ JSBool S_CCLabelTTF::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             ret->retain();
             JSObject *tmp = JS_NewObject(cx, S_CCLabelTTF::jsClass, S_CCLabelTTF::jsObject, NULL);
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = 0;// kPointerTemporary;
+            pt->flags = kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             ret->setUserData(tmp);
@@ -639,7 +643,7 @@ JSBool S_CCMenuItemLabel::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             }
 
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = 0;//FIXME: ? kPointerTemporary;
+            pt->flags = kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             ret->setUserData(tmp);
@@ -925,7 +929,7 @@ JSBool S_CCMenuItemToggle::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
             }
 
             pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-            pt->flags = 0;//kPointerTemporary;
+            pt->flags = kPointerTemporary;
             pt->data = (void *)ret;
             JS_SetPrivate(tmp, pt);
             ret->setUserData(tmp);
@@ -1106,21 +1110,26 @@ JSBool S_CCScheduler::jsscheduleSelector(JSContext *cx, uint32_t argc, jsval *vp
         HASH_FIND_INT(s_pScheduleDict, &arg1, pElement);
         if (pElement != NULL)
         {
-            if (pElement->valNativeObj == pSchedulerSelector)
+            if (pElement->jsFuncObj == arg0)
             {
+//                 JS_RemoveObjectRoot(cx, &arg1);
+//                 JS_RemoveObjectRoot(cx, &arg0);
                 self->unscheduleSelector(schedule_selector(SchedulerSelector::schedulerCallBack), pSchedulerSelector);
-                CC_SAFE_RELEASE(pElement->valNativeObj);
+                CC_SAFE_RELEASE(pElement->nativeObj);
                 HASH_DEL(s_pScheduleDict, pElement);
             }
         }
+
+//         JS_AddNamedObjectRoot(cx, &arg1, "scheduler this");
+//         JS_AddNamedObjectRoot(cx, &arg0, "scheduler function");
 
         CCLog("native: jsscheduleSelector 5");
         self->scheduleSelector(schedule_selector(SchedulerSelector::schedulerCallBack), pSchedulerSelector, arg2, arg3);
 
         pElement = new ScheduleElement();
-        pElement->keyJsObj = arg1;
-        pElement->valNativeObj = pSchedulerSelector;
-        HASH_ADD_INT(s_pScheduleDict, keyJsObj, pElement);
+        pElement->jsThisObj = arg1;
+        pElement->nativeObj = pSchedulerSelector;
+        HASH_ADD_INT(s_pScheduleDict, jsThisObj, pElement);
 
         return JS_TRUE;
     }
@@ -1138,14 +1147,17 @@ JSBool S_CCScheduler::jsunscheduleAllSelectorsForTarget(JSContext *cx, uint32_t 
         JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
         ScheduleElement *pElement = NULL;
         HASH_FIND_INT(s_pScheduleDict, &arg0, pElement);
-        if (pElement != NULL)
+        if (pElement != NULL && pElement->jsThisObj == arg0)
         {
-            self->unscheduleAllSelectorsForTarget(pElement->valNativeObj);
-            CC_SAFE_RELEASE(pElement->valNativeObj);
+//             JS_RemoveObjectRoot(cx, &pElement->jsThisObj);
+//             JS_RemoveObjectRoot(cx, &pElement->jsFuncObj);
+            self->unscheduleAllSelectorsForTarget(pElement->nativeObj);
+            CC_SAFE_RELEASE(pElement->nativeObj);
             HASH_DEL(s_pScheduleDict, pElement);
         }
         else
         {
+            int a = 0;
            // CCAssert(false, "can't find the object which invoke this scheduler");
         }
         JS_SET_RVAL(cx, vp, JSVAL_VOID);

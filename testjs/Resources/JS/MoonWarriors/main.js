@@ -39,3 +39,9 @@ var pScene = SysMenu.scene();
 cc.log("18-------------------"); 
 pDirector.runWithScene(pScene);
 cc.log("19-------------------"); 
+
+cc.log("cc.Node.prototype = " +cc.Node.prototype);
+cc.log("cc.Node.constructor = " +cc.Node.constructor);
+cc.log("cc.MoveBy.prototype = " +cc.MoveBy.prototype);
+cc.log("cc.Layer.prototype = " +cc.Layer.prototype);
+cc.log("cc.Sprite.prototype = " +cc.Sprite.prototype);
