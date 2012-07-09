@@ -27,7 +27,6 @@ void MenuItemSelector::menuCallBack(CCObject* pSender)
     jsval rval;
     jsval val = OBJECT_TO_JSVAL(m_pSender);
 
-
     JS_CallFunctionValue(cx, m_pThisJsObj, OBJECT_TO_JSVAL(m_pCallBackFuncObj), 1, &val, &rval);
 }
 
@@ -1112,16 +1111,16 @@ JSBool S_CCScheduler::jsscheduleSelector(JSContext *cx, uint32_t argc, jsval *vp
         {
             if (pElement->jsFuncObj == arg0)
             {
-//                 JS_RemoveObjectRoot(cx, &arg1);
-//                 JS_RemoveObjectRoot(cx, &arg0);
+                JS_RemoveObjectRoot(cx, &arg1);
+                JS_RemoveObjectRoot(cx, &arg0);
                 self->unscheduleSelector(schedule_selector(SchedulerSelector::schedulerCallBack), pSchedulerSelector);
                 CC_SAFE_RELEASE(pElement->nativeObj);
                 HASH_DEL(s_pScheduleDict, pElement);
             }
         }
 
-//         JS_AddNamedObjectRoot(cx, &arg1, "scheduler this");
-//         JS_AddNamedObjectRoot(cx, &arg0, "scheduler function");
+        JS_AddObjectRoot(cx, &arg1);
+        JS_AddObjectRoot(cx, &arg0);
 
         CCLog("native: jsscheduleSelector 5");
         self->scheduleSelector(schedule_selector(SchedulerSelector::schedulerCallBack), pSchedulerSelector, arg2, arg3);
@@ -1149,8 +1148,8 @@ JSBool S_CCScheduler::jsunscheduleAllSelectorsForTarget(JSContext *cx, uint32_t 
         HASH_FIND_INT(s_pScheduleDict, &arg0, pElement);
         if (pElement != NULL && pElement->jsThisObj == arg0)
         {
-//             JS_RemoveObjectRoot(cx, &pElement->jsThisObj);
-//             JS_RemoveObjectRoot(cx, &pElement->jsFuncObj);
+            JS_RemoveObjectRoot(cx, &pElement->jsThisObj);
+            JS_RemoveObjectRoot(cx, &pElement->jsFuncObj);
             self->unscheduleAllSelectorsForTarget(pElement->nativeObj);
             CC_SAFE_RELEASE(pElement->nativeObj);
             HASH_DEL(s_pScheduleDict, pElement);

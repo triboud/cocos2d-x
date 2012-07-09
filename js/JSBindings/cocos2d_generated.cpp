@@ -16641,7 +16641,11 @@ JSBool S_CCNode::jsremoveChild(JSContext *cx, uint32_t argc, jsval *vp) {
 	}
     else
     {
-        CCAssert(false, "you have to pass two parameters to removeChild");
+        JSObject *arg0;
+        JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+        CCNode* narg0; JSGET_PTRSHELL(CCNode, narg0, arg0);
+        self->removeChild(narg0, false);//, arg1);
+  //      CCAssert(false, "you have to pass two parameters to removeChild");
     }
     
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
@@ -16651,12 +16655,18 @@ JSBool S_CCNode::jsremoveChildByTag(JSContext *cx, uint32_t argc, jsval *vp) {
 	JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
 	S_CCNode* self = NULL; JSGET_PTRSHELL(S_CCNode, self, obj);
 	if (self == NULL) return JS_FALSE;
-	if (argc == 2) {
+	if (argc == 2 || argc == 1) {
 		int arg0;
 		JSBool arg1;
-		JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "ib", &arg0, &arg1);
-		self->removeChildByTag(arg0, arg1);
-		
+		JS_ConvertArguments(cx, 2, JS_ARGV(cx, vp), "i/b", &arg0, &arg1);
+        if (argc == 1)
+        {
+            self->removeChildByTag(arg0, false);
+        }
+        else
+        {
+		    self->removeChildByTag(arg0, false);//todo: arg1);
+        }
 		JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 		return JS_TRUE;
 	}
@@ -28303,25 +28313,38 @@ void S_CCSpriteBatchNode::jsCreateClass(JSContext *cx, JSObject *globalObj, cons
 		};
 
 		static JSFunctionSpec st_funcs[] = {
-			JS_FN("batchNodeWithTexture", S_CCSpriteBatchNode::jsbatchNodeWithTexture, 1, JSPROP_PERMANENT | JSPROP_SHARED),
-			JS_FN("batchNodeWithFile", S_CCSpriteBatchNode::jsbatchNodeWithFile, 1, JSPROP_PERMANENT | JSPROP_SHARED),
+			JS_FN("create", S_CCSpriteBatchNode::jscreate, 1, JSPROP_PERMANENT | JSPROP_SHARED),
 			JS_FS_END
 		};
 
 	jsObject = JS_InitClass(cx,globalObj,S_CCNode::jsObject,jsClass,S_CCSpriteBatchNode::jsConstructor,0,properties,funcs,NULL,st_funcs);
 }
 
-JSBool S_CCSpriteBatchNode::jsbatchNodeWithTexture(JSContext *cx, uint32_t argc, jsval *vp) {
+JSBool S_CCSpriteBatchNode::jscreate(JSContext *cx, uint32_t argc, jsval *vp) {
 	if (argc == 1) {
-		JSObject *arg0;
-		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
-		CCTexture2D* narg0; JSGET_PTRSHELL(CCTexture2D, narg0, arg0);
-		CCSpriteBatchNode* ret = CCSpriteBatchNode::batchNodeWithTexture(narg0);
+		
+        jsval* args = JS_ARGV(cx, vp);
+        CCSpriteBatchNode* ret = NULL;
+        if (JSVAL_IS_STRING(args[0]))
+        {
+            JSString *arg0;
+            JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
+            char *narg0 = JS_EncodeString(cx, arg0);
+            ret = CCSpriteBatchNode::create(narg0);
+        }
+        else
+        {
+            JSObject *arg0;
+		    JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &arg0);
+		    CCTexture2D* narg0; JSGET_PTRSHELL(CCTexture2D, narg0, arg0);
+		    ret = CCSpriteBatchNode::create(narg0);
+        }
 		if (ret == NULL) {
 			JS_SET_RVAL(cx, vp, JSVAL_NULL);
 			return JS_TRUE;
 		}
 		do {
+            ret->retain();
 			JSObject *tmp = JS_NewObject(cx, S_CCSpriteBatchNode::jsClass, S_CCSpriteBatchNode::jsObject, NULL);
 			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
 			pt->flags = kPointerTemporary;
@@ -28335,30 +28358,7 @@ JSBool S_CCSpriteBatchNode::jsbatchNodeWithTexture(JSContext *cx, uint32_t argc,
 	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 	return JS_TRUE;
 }
-JSBool S_CCSpriteBatchNode::jsbatchNodeWithFile(JSContext *cx, uint32_t argc, jsval *vp) {
-	if (argc == 1) {
-		JSString *arg0;
-		JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &arg0);
-		char *narg0 = JS_EncodeString(cx, arg0);
-		CCSpriteBatchNode* ret = CCSpriteBatchNode::batchNodeWithFile(narg0);
-		if (ret == NULL) {
-			JS_SET_RVAL(cx, vp, JSVAL_NULL);
-			return JS_TRUE;
-		}
-		do {
-			JSObject *tmp = JS_NewObject(cx, S_CCSpriteBatchNode::jsClass, S_CCSpriteBatchNode::jsObject, NULL);
-			pointerShell_t *pt = (pointerShell_t *)JS_malloc(cx, sizeof(pointerShell_t));
-			pt->flags = kPointerTemporary;
-			pt->data = (void *)ret;
-			JS_SetPrivate(tmp, pt);
-			JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(tmp));
-		} while (0);
-		
-		return JS_TRUE;
-	}
-	JS_SET_RVAL(cx, vp, JSVAL_TRUE);
-	return JS_TRUE;
-}
+
 JSBool S_CCSpriteBatchNode::jsinitWithTexture(JSContext *cx, uint32_t argc, jsval *vp) {
 	JSObject* obj = (JSObject *)JS_THIS_OBJECT(cx, vp);
 	S_CCSpriteBatchNode* self = NULL; JSGET_PTRSHELL(S_CCSpriteBatchNode, self, obj);

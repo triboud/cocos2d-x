@@ -1,4 +1,5 @@
 cc.log("0-------------------"); 
+
 require("JS/MoonWarriors/Resource.js");
 require("JS/MoonWarriors/Utils.js");
 require("JS/MoonWarriors/CCPointExtension.js");
