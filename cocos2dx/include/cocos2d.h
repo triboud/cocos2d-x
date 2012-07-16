@@ -149,7 +149,7 @@ THE SOFTWARE.
     #include "platform/marmalade/CCEGLView.h"
     #include "platform/marmalade/CCGL.h"
     #include "platform/marmalade/CCStdC.h"
-#endif // CC_TARGET_PLATFROM == CC_PLATFORM_ANDROID
+#endif // CC_TARGET_PLATFROM == CC_PLATFORM_MARMALADE
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
 #include "platform/win32/CCAccelerometer.h"
