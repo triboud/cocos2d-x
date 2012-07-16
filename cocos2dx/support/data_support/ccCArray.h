@@ -48,6 +48,9 @@ THE SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+// styck - These are required by Marmalade
+#include <stdarg.h>
+#include <math.h>
 
 NS_CC_BEGIN
 
