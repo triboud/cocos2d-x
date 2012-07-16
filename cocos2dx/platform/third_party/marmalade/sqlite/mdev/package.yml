@@ -1,0 +1,24 @@
+Package: sqlite
+Maintainer: Marmalade Package Team <packages@ideaworkslabs.com>
+Mkbs: sqlite.mkb
+Libraries: sqlite
+Description: |
+ sqlite3 library for database manipulation.
+Contents:
+ - upstream/sqlite3.h : h/sqlite3.h
+ - upstream/sqlite3ext.h : h/sqlite3ext.h
+ - sqlite.mkf
+ - docs/sqlite.defines.txt
+ - README.rst
+Contents-Source:
+ - README.rst
+ - sqlite.mkf
+ - sqlite.mkb
+ - sqlite-build.mkf
+ - docs
+ - example/shell.mkb
+ - example/sqlite3_example.mkb
+ - example/data/app.icf
+ - example/CppSQLite3Demo.cpp
+ - example/CppSQLite3.cpp
+ - example/CppSQLite3.h
