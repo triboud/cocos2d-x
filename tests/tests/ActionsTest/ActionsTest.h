@@ -304,10 +304,10 @@ class Issue1305_2 : public ActionsDemo
 {
 public:
     virtual void onEnter();
-    void log1();
-    void log2();
-    void log3();
-    void log4();
+    void log01();
+    void log02();
+    void log03();
+    void log04();
     virtual std::string title();
     virtual std::string subtitle();
 };
