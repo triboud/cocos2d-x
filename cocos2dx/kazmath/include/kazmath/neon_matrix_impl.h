@@ -25,7 +25,7 @@
 #define __NEON_MATRIX_IMPL_H__
 
 #ifdef __arm__
-#ifdef ANDROID
+#if defined ANDROID || defined I3D_ARCH_ARM  // I3D_ARCH_ARM is for Marmalade arm build
 // android don't have arm/arch.h but it defines __arm__
 #else
 #include "arm/arch.h"

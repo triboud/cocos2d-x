@@ -32,7 +32,9 @@ THE SOFTWARE.
 #include "CCFileUtils.h"
 #include "png.h"
 #include "jpeglib.h"
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_MARMALADE)	//  Marmalade doesn't support yet
 #include "tiffio.h"
+#endif
 #include <string>
 #include <ctype.h>
 
@@ -403,6 +405,7 @@ out:
     return bRet;
 }
 
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_MARMALADE)	// Marmalade doesn't support
 static tmsize_t _tiffReadProc(thandle_t fd, void* buf, tmsize_t size)
 {
     tImageSource* isource = (tImageSource*)fd;
@@ -509,10 +512,13 @@ static void _tiffUnmapProc(thandle_t fd, void* base, toff_t size)
     CC_UNUSED_PARAM(base);
     CC_UNUSED_PARAM(size);
 }
+#endif
 
+// marmalade currently doesn't support TIFF
 bool CCImage::_initWithTiffData(void* pData, int nDataLen)
 {
     bool bRet = false;
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_MARMALADE)
     do 
     {
         // set the read call back function
@@ -577,6 +583,7 @@ bool CCImage::_initWithTiffData(void* pData, int nDataLen)
 
         bRet = true;
     } while (0);
+#endif
     return bRet;
 }
 

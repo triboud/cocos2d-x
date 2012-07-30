@@ -48,6 +48,9 @@ THE SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+// These are required by Marmalade - shouldn't hurt other builds
+#include <stdarg.h>
+#include <math.h>
 
 NS_CC_BEGIN
 

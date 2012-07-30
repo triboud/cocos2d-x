@@ -1,0 +1,25 @@
+# Public mkf file for sqlite package
+
+define SQLITE_OMIT_LOAD_EXTENSION
+
+options
+{
+	module_path="../platform/third_party/marmalade/"
+}
+
+includepaths
+{
+	sqlite/upstream
+}
+
+files
+{
+    (h)
+    sqlite3ext.h
+    sqlite3.h
+
+    (docs)
+    sqlite.defines.txt
+}
+
+library ".,sqlite"

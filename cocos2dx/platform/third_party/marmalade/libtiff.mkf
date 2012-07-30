@@ -1,0 +1,16 @@
+
+includepath
+{
+	.
+	"libtiff"
+}
+
+subproject libjpeg8d
+
+files
+{
+	[libtiff]
+	("libtiff")
+	"*.h"
+	"*.c"
+}
