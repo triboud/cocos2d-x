@@ -40,14 +40,14 @@ class EGLTouchDelegate;
 class CCKeypadDelegate;
 
 
-class CC_DLL CCEGLView
+class CC_DLL CCEGLView : public CCEGLViewProtocol
 {
 public:
     CCEGLView();
     virtual ~CCEGLView();
 
     CCSize	getSize();
-    bool	isOpenGLReady();
+    virtual bool isOpenGLReady();
     bool    isIpad();
 	/**
 	 * the width and height is the real size of phone
@@ -61,14 +61,14 @@ public:
     EGLTouchDelegate* getDelegate(void);
     
     // keep compatible
-    void    end();
+    virtual void end();
     void	setTouchDelegate(EGLTouchDelegate * pDelegate);
-    void	swapBuffers();
-    bool	canSetContentScaleFactor();
-    void	setContentScaleFactor(float contentScaleFactor);
+    virtual void swapBuffers();
+    virtual bool canSetContentScaleFactor();
+    virtual void setContentScaleFactor(float contentScaleFactor);
 	void	setViewPortInPoints(float x, float y, float w, float h);
     void	setScissorInPoints(float x, float y, float w, float h);
-    void	setIMEKeyboardState(bool bOpen);
+    virtual void setIMEKeyboardState(bool bOpen);
 	CCRect	getViewPort();
 	float	getScreenScaleFactor();
 	
