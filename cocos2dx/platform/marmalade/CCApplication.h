@@ -32,12 +32,13 @@
 #include "CCDirector.h"
 #include "IwUtil.h"
 #include "IwUtilInitTerm.h"
+#include "CCProtocols.h"
 NS_CC_BEGIN
 
 
 class CCRect;
 
-class CC_DLL CCApplication : public CCApplicationProtocol
+class CC_DLL CCApplication : public CCApplicationProtocol, CCDirectorDelegate
 {
 public:
 
@@ -87,7 +88,7 @@ public:
     @return Current language config
     */
     virtual ccLanguageType getCurrentLanguage();
-
+	void updateProjection(void);
 protected:
 	uint64       m_nAnimationInterval;
 

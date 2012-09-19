@@ -31,6 +31,8 @@
 
 #include <s3e.h>
 #include <IwMemBucketHelpers.h>
+#include "kazmath\GL\matrix.h"
+#include "IwGL.h"
 
 
 NS_CC_BEGIN
@@ -55,12 +57,51 @@ CCApplication::~CCApplication()
 	sm_pSharedApplication = NULL;
 }
 
+void CCApplication::updateProjection(void)
+{
+	CCSize size = CCDirector::sharedDirector()->getWinSize();
+	s3eSurfaceBlitDirection direction = (s3eSurfaceBlitDirection)IwGLGetInt(IW_GL_ROTATE);
+
+	kmGLMatrixMode(KM_GL_PROJECTION);
+	kmGLLoadIdentity();
+	kmMat4 orthoMatrix;
+	if (direction == S3E_SURFACE_BLIT_DIR_ROT270
+		||direction == S3E_SURFACE_BLIT_DIR_ROT90)
+		kmMat4OrthographicProjection(&orthoMatrix, 0, size.height / CC_CONTENT_SCALE_FACTOR(), 0, size.width / CC_CONTENT_SCALE_FACTOR(), -1024, 1024 );
+	else
+		kmMat4OrthographicProjection(&orthoMatrix, 0, size.width / CC_CONTENT_SCALE_FACTOR(), 0, size.height / CC_CONTENT_SCALE_FACTOR(), -1024, 1024 );
+	kmGLMultMatrix(&orthoMatrix);
+	kmGLMatrixMode(KM_GL_MODELVIEW);
+	kmGLLoadIdentity();
+	switch(direction)
+	{
+	case S3E_SURFACE_BLIT_DIR_ROT270:
+		kmGLRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+		kmGLTranslatef(0.0f, -size.height, 0.0f);
+		break;
+	case S3E_SURFACE_BLIT_DIR_ROT90:
+		kmGLRotatef(-90.0f, 0.0f, 0.0f, 1.0f);
+		kmGLTranslatef(-size.width, 0.0f, 0.0f);
+		break;
+	case S3E_SURFACE_BLIT_DIR_ROT180:
+		kmGLRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+		kmGLTranslatef(-size.width, -size.height, 0.0f);
+		break;
+	}
+}
 
 int CCApplication::run()
 {
 	IW_CALLSTACK("CCApplication::Run");
 	
 	s3eBool quitRequested = 0;
+
+	CCDirector *pDirector = CCDirector::sharedDirector();
+
+	struct Evil : CCDirector { using CCDirector::m_pProjectionDelegate; };
+	(*(Evil*)pDirector).*(&Evil::m_pProjectionDelegate) = this;
+
+	pDirector->setProjection(kCCDirectorProjectionCustom);
 
 	if (!applicationDidFinishLaunching() )
 	{
